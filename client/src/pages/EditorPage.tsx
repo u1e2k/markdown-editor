@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useNoteStore } from '../store/noteStore';
+import { useNoteStore, Note } from '../store/noteStore';
 import { NoteList } from '../components/NoteList';
 import { Editor } from '../components/Editor';
 import './EditorPage.css';
 
 export function EditorPage() {
-  const { notes, currentNote, fetchNotes, createNote, setCurrentNote } = useNoteStore();
+  const { notes, currentNote, fetchNotes, createNote, fetchNote } = useNoteStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
@@ -27,6 +27,10 @@ export function EditorPage() {
     }
   };
 
+  const handleSelectNote = async (note: Note) => {
+    await fetchNote(note.id);
+  };
+
   return (
     <div className="editor-page">
       <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
@@ -39,7 +43,7 @@ export function EditorPage() {
         <NoteList
           notes={notes}
           currentNoteId={currentNote?.id}
-          onSelectNote={setCurrentNote}
+          onSelectNote={handleSelectNote}
         />
       </div>
       <button 

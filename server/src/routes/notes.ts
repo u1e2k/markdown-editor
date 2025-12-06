@@ -27,7 +27,10 @@ noteRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
+    console.log('📖 GET /api/notes/:id - Fetching note:', id);
+
     // メタデータ取得
+    console.log('Fetching metadata from DynamoDB...');
     const metaResult = await docClient.send(
       new GetCommand({
         TableName: 'Notes',
@@ -36,10 +39,13 @@ noteRouter.get('/:id', async (req: Request, res: Response) => {
     );
 
     if (!metaResult.Item) {
+      console.log('❌ Note not found:', id);
       return res.status(404).json({ error: 'Note not found' });
     }
+    console.log('✓ Metadata retrieved:', metaResult.Item);
 
     // コンテンツ取得
+    console.log('Fetching content from MinIO...');
     const stream = await minioClient.getObject('jade-notes', id);
     const chunks: Buffer[] = [];
     
@@ -48,13 +54,16 @@ noteRouter.get('/:id', async (req: Request, res: Response) => {
     }
     
     const content = Buffer.concat(chunks).toString('utf-8');
+    console.log('✓ Content retrieved, length:', content.length);
 
-    res.json({
+    const response = {
       ...metaResult.Item,
       content,
-    });
+    };
+    console.log('✅ Returning note with content length:', response.content?.length);
+    res.json(response);
   } catch (error) {
-    console.error('Error fetching note:', error);
+    console.error('❌ Error fetching note:', error);
     res.status(500).json({ error: 'Failed to fetch note' });
   }
 });
@@ -129,7 +138,12 @@ noteRouter.put('/:id', async (req: Request, res: Response) => {
     const { title, content } = req.body;
     const now = new Date().toISOString();
 
+    console.log('📝 PUT /api/notes/:id - Updating note:', id);
+    console.log('Title:', title);
+    console.log('Content length:', content?.length || 0);
+
     // メタデータ更新
+    console.log('Updating metadata in DynamoDB...');
     await docClient.send(
       new PutCommand({
         TableName: 'Notes',
@@ -140,14 +154,18 @@ noteRouter.put('/:id', async (req: Request, res: Response) => {
         },
       })
     );
+    console.log('✓ Metadata updated');
 
     // コンテンツ更新
+    console.log('Updating content in MinIO...');
     const buffer = Buffer.from(content, 'utf-8');
     await minioClient.putObject('jade-notes', id, buffer, buffer.length, {
       'Content-Type': 'text/markdown',
     });
+    console.log('✓ Content updated');
 
     // 検索インデックス更新
+    console.log('Updating search index...');
     await elasticClient.update({
       index: 'notes',
       id,
@@ -157,11 +175,13 @@ noteRouter.put('/:id', async (req: Request, res: Response) => {
         updatedAt: now,
       },
     });
+    console.log('✓ Search index updated');
 
+    console.log('✅ Note updated successfully:', id);
     res.json({ id, title, updatedAt: now });
   } catch (error) {
-    console.error('Error updating note:', error);
-    res.status(500).json({ error: 'Failed to update note' });
+    console.error('❌ Error updating note:', error);
+    res.status(500).json({ error: 'Failed to update note', details: error instanceof Error ? error.message : String(error) });
   }
 });
 
