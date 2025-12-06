@@ -1,0 +1,41 @@
+.note-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.empty-list {
+  padding: 20px;
+  text-align: center;
+  color: #858585;
+}
+
+.note-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #3e3e42;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.note-item:hover {
+  background-color: #2d2d30;
+}
+
+.note-item.active {
+  background-color: #37373d;
+  border-left: 3px solid #0e639c;
+}
+
+.note-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #cccccc;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-date {
+  font-size: 12px;
+  color: #858585;
+}

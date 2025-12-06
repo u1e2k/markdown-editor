@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # MinIO - S3互換オブジェクトストレージ
+  minio:
+    image: minio/minio:latest
+    container_name: jade-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - jade-network
+
+  # DynamoDB Local - メタデータDB
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: jade-dynamodb
+    ports:
+      - "8000:8000"
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /data"
+    volumes:
+      - dynamodb-data:/data
+    networks:
+      - jade-network
+
+  # Elasticsearch - 全文検索エンジン
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: jade-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - jade-network
+
+  # バックエンドAPI (Bun)
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: jade-api
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - DYNAMODB_ENDPOINT=http://dynamodb:8000
+      - ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200
+    depends_on:
+      - minio
+      - dynamodb
+      - elasticsearch
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    networks:
+      - jade-network
+
+volumes:
+  minio-data:
+  dynamodb-data:
+  elasticsearch-data:
+
+networks:
+  jade-network:
+    driver: bridge
