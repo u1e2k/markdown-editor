@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNoteStore, Note } from '../store/noteStore';
 import { NoteList } from '../components/NoteList';
 import { Editor } from '../components/Editor';
+import { GraphPage } from './GraphPage';
 import './EditorPage.css';
 
 export function EditorPage() {
   const { notes, currentNote, fetchNotes, createNote, fetchNote } = useNoteStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showGraph, setShowGraph] = useState(false);
 
   useEffect(() => {
     const loadNotes = async () => {
@@ -53,9 +55,18 @@ export function EditorPage() {
       <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
           <h2>ノート一覧</h2>
-          <button onClick={handleCreateNote} className="create-button">
-            + 新規作成
-          </button>
+          <div className="sidebar-actions">
+            <button onClick={handleCreateNote} className="create-button">
+              + 新規作成
+            </button>
+            <button 
+              onClick={() => setShowGraph(!showGraph)} 
+              className={`graph-toggle-button ${showGraph ? 'active' : ''}`}
+              title={showGraph ? 'グラフを非表示' : 'グラフを表示'}
+            >
+              {showGraph ? '📝' : '🔗'}
+            </button>
+          </div>
         </div>
         <NoteList
           notes={notes}
@@ -69,12 +80,19 @@ export function EditorPage() {
       >
         {isSidebarOpen ? '◀' : '▶'}
       </button>
-      <div className="editor-container">
-        {currentNote ? (
-          <Editor note={currentNote} />
-        ) : (
-          <div className="empty-state">
-            <p>ノートを選択するか、新しいノートを作成してください</p>
+      <div className={`main-content ${showGraph ? 'split' : 'full'}`}>
+        <div className="editor-container">
+          {currentNote ? (
+            <Editor note={currentNote} />
+          ) : (
+            <div className="empty-state">
+              <p>ノートを選択するか、新しいノートを作成してください</p>
+            </div>
+          )}
+        </div>
+        {showGraph && (
+          <div className="graph-container">
+            <GraphPage />
           </div>
         )}
       </div>

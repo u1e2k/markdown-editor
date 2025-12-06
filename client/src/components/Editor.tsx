@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import MonacoEditor from '@monaco-editor/react';
+import { CodeMirrorEditor } from './CodeMirrorEditor';
 import { Note } from '../store/noteStore';
 import { useNoteStore } from '../store/noteStore';
 import './Editor.css';
@@ -75,38 +75,9 @@ export function Editor({ note }: EditorProps) {
         </div>
       </div>
       <div className="editor-body">
-        <MonacoEditor
-          height="100%"
-          language="markdown"
-          theme="vs-dark"
+        <CodeMirrorEditor
           value={content}
-          onChange={(value) => setContent(value || '')}
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            lineNumbers: 'on',
-            wordWrap: 'on',
-            padding: { top: 20, bottom: 20 },
-            // Monaco Editorの検証を無効化
-            'semanticHighlighting.enabled': false,
-          }}
-          beforeMount={(monaco) => {
-            // [[リンク]]構文のカスタムトークナイザを登録
-            monaco.languages.setMonarchTokensProvider('markdown', {
-              tokenizer: {
-                root: [
-                  // Wikiリンク構文 [[...]]
-                  [/\[\[[^\]]+\]\]/, 'string.link'],
-                  // 通常のMarkdownトークン
-                  [/^#{1,6}\s.*$/, 'keyword'],
-                  [/\*\*.*?\*\*/, 'strong'],
-                  [/\*.*?\*/, 'emphasis'],
-                  [/`[^`]+`/, 'variable'],
-                  [/\[.*?\]\(.*?\)/, 'string.link'],
-                ],
-              },
-            } as any);
-          }}
+          onChange={(value) => setContent(value)}
         />
       </div>
     </div>

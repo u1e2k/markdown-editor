@@ -29,8 +29,13 @@
   color: #cccccc;
 }
 
+.sidebar-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .create-button {
-  width: 100%;
+  flex: 1;
   padding: 10px;
   background-color: #0e639c;
   color: white;
@@ -43,6 +48,29 @@
 }
 
 .create-button:hover {
+  background-color: #1177bb;
+}
+
+.graph-toggle-button {
+  padding: 10px 16px;
+  background-color: #3e3e42;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.graph-toggle-button:hover {
+  background-color: #4e4e52;
+}
+
+.graph-toggle-button.active {
+  background-color: #0e639c;
+}
+
+.graph-toggle-button.active:hover {
   background-color: #1177bb;
 }
 
@@ -71,10 +99,41 @@
   background-color: #2d2d30;
 }
 
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.main-content.full .editor-container {
+  width: 100%;
+}
+
+.main-content.split {
+  display: flex;
+  gap: 0;
+}
+
+.main-content.split .editor-container {
+  width: 50%;
+  border-right: 1px solid #3e3e42;
+}
+
+.main-content.split .graph-container {
+  width: 50%;
+  overflow: hidden;
+}
+
 .editor-container {
   flex: 1;
   display: flex;
   overflow: hidden;
+}
+
+.graph-container {
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
 }
 
 .empty-state {
