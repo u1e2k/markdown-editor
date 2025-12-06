@@ -40,6 +40,7 @@ interface NoteStore {
   createNote: (title: string, content: string) => Promise<Note>;
   updateNote: (id: string, title: string, content: string) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
+  importNotes: (files: File[]) => Promise<void>;
   setCurrentNote: (note: Note | null) => void;
 }
 
@@ -119,6 +120,35 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     } catch (error) {
       console.error('Failed to delete note:', error);
       set({ error: 'Failed to delete note', loading: false });
+      throw error;
+    }
+  },
+
+  importNotes: async (files: File[]) => {
+    set({ loading: true, error: null });
+    try {
+      // ファイルを読み込んでJSONに変換
+      const filePromises = files.map(async (file) => {
+        const content = await file.text();
+        return {
+          name: file.name,
+          content: content,
+        };
+      });
+      
+      const filesData = await Promise.all(filePromises);
+      
+      const response = await axios.post(`${API_BASE}/notes/import`, {
+        files: filesData,
+      });
+      
+      // インポート後にノート一覧を再取得
+      await get().fetchNotes();
+      
+      console.log(`✅ Imported ${response.data.imported} notes`);
+    } catch (error) {
+      console.error('Failed to import notes:', error);
+      set({ error: 'Failed to import notes', loading: false });
       throw error;
     }
   },

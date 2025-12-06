@@ -1,6 +1,40 @@
 .note-list {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.note-list-header {
+  padding: 10px;
+  border-bottom: 1px solid #3e3e42;
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.note-list-content {
+  flex: 1;
   overflow-y: auto;
+}
+
+.import-button {
+  background-color: #0e639c;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.import-button:hover {
+  background-color: #1177bb;
+}
+
+.import-button:active {
+  background-color: #0d5a8f;
 }
 
 .empty-list {

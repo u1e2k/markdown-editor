@@ -244,3 +244,101 @@ noteRouter.delete('/:id', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to delete note' });
   }
 });
+
+// マークダウンファイルのインポート
+noteRouter.post('/import', async (req: Request, res: Response) => {
+  try {
+    console.log('📥 POST /api/notes/import - Importing markdown files');
+    
+    const { files } = req.body;
+    
+    if (!files || !Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ error: 'No files provided' });
+    }
+
+    await ensureVaultExists();
+    
+    let imported = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+
+    for (const file of files) {
+      try {
+        // ファイル名から拡張子を除いた名前を取得
+        const originalName = file.name.replace(/\.md$/i, '');
+        
+        // ファイル内容を解析
+        const fileContent = file.content;
+        const { data, content } = matter(fileContent);
+        
+        // IDを生成（既存のIDがあればそれを使用、なければUUID）
+        const id = data.id || uuidv4();
+        const filepath = path.join(VAULT_PATH, `${id}.md`);
+        
+        // 既存ファイルチェック
+        try {
+          await fs.access(filepath);
+          console.log(`⚠️  File already exists, skipping: ${originalName}`);
+          skipped++;
+          continue;
+        } catch {
+          // ファイルが存在しない場合は作成
+        }
+        
+        const now = new Date().toISOString();
+        
+        // フロントマターを構築（既存のメタデータを保持）
+        const frontmatter = {
+          title: data.title || originalName,
+          createdAt: data.createdAt || now,
+          updatedAt: data.updatedAt || now,
+          ...data, // その他のメタデータも保持
+        };
+        
+        // ファイルを保存
+        const finalContent = matter.stringify(content, frontmatter);
+        await fs.writeFile(filepath, finalContent, 'utf-8');
+        
+        // 検索インデックスに追加（エラーは無視）
+        try {
+          await elasticClient.index({
+            index: 'notes',
+            id,
+            document: {
+              id,
+              title: frontmatter.title,
+              content,
+              updatedAt: frontmatter.updatedAt,
+            },
+          });
+        } catch (err) {
+          console.warn(`⚠️  Search index failed for ${originalName}:`, err);
+        }
+        
+        console.log(`✅ Imported: ${originalName} (${id})`);
+        imported++;
+        
+      } catch (error) {
+        const errorMsg = `Failed to import ${file.name}: ${error instanceof Error ? error.message : String(error)}`;
+        console.error('❌', errorMsg);
+        errors.push(errorMsg);
+      }
+    }
+
+    console.log(`📊 Import summary: ${imported} imported, ${skipped} skipped, ${errors.length} errors`);
+    
+    res.json({
+      imported,
+      skipped,
+      errors: errors.length > 0 ? errors : undefined,
+      message: `Successfully imported ${imported} notes${skipped > 0 ? `, skipped ${skipped} existing files` : ''}`,
+    });
+    
+  } catch (error) {
+    console.error('❌ Error importing notes:', error);
+    res.status(500).json({ 
+      error: 'Failed to import notes', 
+      details: error instanceof Error ? error.message : String(error) 
+    });
+  }
+});

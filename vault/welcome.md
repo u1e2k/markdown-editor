@@ -5,7 +5,7 @@ tags:
   - tag
 title: Welcome to Jade
 createdAt: 2025-12-06T00:00:00.000Z
-updatedAt: '2025-12-06T10:57:22.468Z'
+updatedAt: '2025-12-06T12:25:30.830Z'
 ---
 
 # Welcome to Jade

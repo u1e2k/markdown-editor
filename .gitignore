@@ -33,3 +33,5 @@ wasm/pkg/
 # Logs
 logs/
 *.log
+
+vault/*
