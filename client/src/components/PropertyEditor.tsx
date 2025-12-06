@@ -7,6 +7,34 @@ interface PropertyEditorProps {
   onChange: (frontmatter: Frontmatter) => void;
 }
 
+// ISO形式やその他の日付形式をyyyy-MM-dd形式に変換
+function formatDateForInput(value: string | undefined): string {
+  if (!value) return '';
+  
+  try {
+    // ISO形式（2025-12-06T00:00:00.000Z）の場合
+    if (value.includes('T')) {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    }
+    // すでにyyyy-MM-dd形式の場合
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return value;
+    }
+    // その他の形式の場合、Dateパースを試みる
+    const date = new Date(value);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().split('T')[0];
+    }
+  } catch (e) {
+    console.warn('[formatDateForInput] Failed to parse date:', value);
+  }
+  
+  return value;
+}
+
 export function PropertyEditor({ frontmatter, onChange }: PropertyEditorProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [newTag, setNewTag] = useState('');
@@ -111,11 +139,11 @@ export function PropertyEditor({ frontmatter, onChange }: PropertyEditorProps) {
                       <option value="保留">保留</option>
                       <option value="アーカイブ">アーカイブ</option>
                     </select>
-                  ) : key === 'created' || key === 'updated' ? (
+                  ) : key === 'created' || key === 'updated' || key === 'createdAt' || key === 'updatedAt' ? (
                     <input
                       type="date"
                       className="property-input"
-                      value={value as string || ''}
+                      value={formatDateForInput(value as string)}
                       onChange={(e) => handlePropertyChange(key, e.target.value)}
                     />
                   ) : (

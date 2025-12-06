@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { CodeMirrorEditor } from './CodeMirrorEditor';
+import { CodeMirrorEditor } from './CodeMirrorEditorNew';
 import { PropertyEditor } from './PropertyEditor';
 import { Note } from '../store/noteStore';
 import { useNoteStore } from '../store/noteStore';
@@ -20,12 +20,19 @@ export function Editor({ note }: EditorProps) {
 
   // ノートが変わったら、frontmatterとbodyに分解
   useEffect(() => {
-    const parsed = parseFrontmatter(note.content || '');
+    // contentがない場合はスキップ（ローディング中または無効なデータ）
+    if (!note.content) {
+      console.log('Note content is empty or undefined, skipping parse. content:', JSON.stringify(note.content));
+      // frontmatterを初期化しない（前のノートの状態を保持）
+      return;
+    }
+    
+    const parsed = parseFrontmatter(note.content);
     console.log('Parsed frontmatter:', parsed.frontmatter);
     console.log('Note content:', note.content);
     setFrontmatter(parsed.frontmatter);
     setBodyContent(parsed.body);
-    setContent(note.content || '');
+    setContent(note.content);
     setTitle(note.title);
   }, [note.id, note.content]);
 

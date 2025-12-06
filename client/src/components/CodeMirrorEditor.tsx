@@ -33,34 +33,40 @@ class HeadingWidget extends WidgetType {
   }
 }
 
-// カスタムウィジェット: 太字のレンダリング
-class BoldWidget extends WidgetType {
-  constructor(readonly text: string) {
-    super();
-  }
-
+// カスタムウィジェット: 太字のレンダリング（開始マーカーを隠す）
+class BoldStartWidget extends WidgetType {
   toDOM() {
-    const span = document.createElement('span');
-    span.textContent = this.text;
-    span.style.fontWeight = '600';
-    span.style.color = '#dcddde';
-    return span;
+    return document.createTextNode('');
   }
+  
+  ignoreEvent() { return false; }
 }
 
-// カスタムウィジェット: イタリックのレンダリング
-class ItalicWidget extends WidgetType {
-  constructor(readonly text: string) {
-    super();
-  }
-
+// カスタムウィジェット: 太字のレンダリング（終了マーカーを隠す）
+class BoldEndWidget extends WidgetType {
   toDOM() {
-    const span = document.createElement('span');
-    span.textContent = this.text;
-    span.style.fontStyle = 'italic';
-    span.style.color = '#dcddde';
-    return span;
+    return document.createTextNode('');
   }
+  
+  ignoreEvent() { return false; }
+}
+
+// カスタムウィジェット: イタリックのレンダリング（開始マーカーを隠す）
+class ItalicStartWidget extends WidgetType {
+  toDOM() {
+    return document.createTextNode('');
+  }
+  
+  ignoreEvent() { return false; }
+}
+
+// カスタムウィジェット: イタリックのレンダリング（終了マーカーを隠す）
+class ItalicEndWidget extends WidgetType {
+  toDOM() {
+    return document.createTextNode('');
+  }
+  
+  ignoreEvent() { return false; }
 }
 
 // カスタムウィジェット: Wikiリンクのレンダリング
@@ -665,19 +671,19 @@ export function CodeMirrorEditor({ value, onChange }: CodeMirrorEditorProps) {
       view.destroy();
       viewRef.current = null;
     };
-  }, [value]);
+  }, []); // valueを依存配列から削除してエディタの再初期化を防ぐ
 
-  // valueが変更された時は上のuseEffectで再初期化されるので、このuseEffectは不要
-  // useEffect(() => {
-  //   if (viewRef.current) {
-  //     const currentValue = viewRef.current.state.doc.toString();
-  //     if (currentValue !== value) {
-  //       viewRef.current.dispatch({
-  //         changes: { from: 0, to: currentValue.length, insert: value },
-  //       });
-  //     }
-  //   }
-  // }, [value]);
+  // 外部からのvalue変更時にエディタを更新（カーソル位置を保持）
+  useEffect(() => {
+    if (viewRef.current) {
+      const currentValue = viewRef.current.state.doc.toString();
+      if (currentValue !== value) {
+        viewRef.current.dispatch({
+          changes: { from: 0, to: currentValue.length, insert: value },
+        });
+      }
+    }
+  }, [value]);
 
   return <div ref={editorRef} style={{ height: '100%', width: '100%' }} />;
 }

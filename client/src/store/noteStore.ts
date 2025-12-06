@@ -64,10 +64,14 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
   },
 
   fetchNote: async (id: string) => {
+    console.log('[Store] fetchNote called for:', id);
     set({ loading: true, error: null });
     try {
       const response = await axios.get(`${API_BASE}/notes/${id}`);
+      console.log('[Store] fetchNote response:', response.data);
+      console.log('[Store] Response content length:', response.data.content?.length);
       set({ currentNote: response.data, loading: false });
+      console.log('[Store] currentNote set to:', response.data.id);
     } catch (error) {
       console.error('Failed to fetch note:', error);
       set({ error: 'Failed to fetch note', loading: false });

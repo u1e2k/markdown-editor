@@ -71,7 +71,12 @@ updated: ${today}
   };
 
   const handleSelectNote = async (note: Note) => {
+    console.log('handleSelectNote called with note:', note.id);
+    // 新しいノートを選択する前に、currentNoteを一時的にnullにして
+    // Editorコンポーネントがfrontmatterをリセットするのを促す
+    // ただし、即座にfetchNoteを実行する
     await fetchNote(note.id);
+    console.log('fetchNote completed for:', note.id);
   };
 
   return (

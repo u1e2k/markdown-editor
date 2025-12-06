@@ -74,7 +74,7 @@ noteRouter.get('/:id', async (req: Request, res: Response) => {
     const response = {
       id,
       title: data.title || id,
-      content,
+      content: fileContent,  // frontmatterを含む完全なコンテンツを返す
       createdAt: data.createdAt || stats.birthtime.toISOString(),
       updatedAt: data.updatedAt || stats.mtime.toISOString(),
       ...data
@@ -147,7 +147,8 @@ noteRouter.post('/', async (req: Request, res: Response) => {
     }
 
     console.log('✅ Note created successfully:', id);
-    res.status(201).json({ id, title, createdAt: now, updatedAt: now });
+    // ファイルに保存した完全なコンテンツ（frontmatter+body）をレスポンスに返す
+    res.status(201).json({ id, title, content: fileContent, createdAt: now, updatedAt: now });
   } catch (error) {
     console.error('❌ Error creating note:', error);
     res.status(500).json({ error: 'Failed to create note', details: error instanceof Error ? error.message : String(error) });
