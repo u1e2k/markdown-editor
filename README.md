@@ -20,8 +20,8 @@
 
 | コンポーネント | 技術スタック | 役割 |
 |:---|:---|:---|
-| **クライアント (UI)** | React / TypeScript | Wasmモジュールの呼び出し、UI描画、ユーザー操作の処理 |
-| **バックエンド (API)** | Node.js / Go (予定) | APIゲートウェイ、データI/Oロジック、クライアントとストレージの仲介 |
+| **クライアント (UI)** | React / TypeScript / Vite | Wasmモジュールの呼び出し、UI描画、ユーザー操作の処理 |
+| **バックエンド (API)** | Bun / Express / TypeScript | APIゲートウェイ、データI/Oロジック、クライアントとストレージの仲介 |
 | **オブジェクトストレージ** | MinIO (S3互換) | ノートのMarkdownファイル実体（バイナリデータ）の保存 |
 | **メタデータDB** | DynamoDB Local | ノードID、リンク関係、更新タイムスタンプなど高速アクセスが必要な属性情報 |
 | **全文検索エンジン** | Elasticsearch | ノート内容の高度な全文検索インデックス |
@@ -83,6 +83,14 @@ sequenceDiagram
 ### Wasm連携
 - **`wasm-pack`**と**`wasm-bindgen`**を使用し、RustコードをTypeScript/Reactから容易に利用できる形式にコンパイル
 
+### Elasticsearch統合
+- **Bun環境での互換性**のため、公式クライアントの代わりに**HTTPベースの簡易クライアント**を実装
+- `fetch` APIを使用してElasticsearch REST APIに直接通信
+
+### DynamoDB Local
+- 開発環境では**インメモリモード**で動作し、ファイルシステムの権限問題を回避
+- データは揮発性だが、開発時の再現性を優先
+
 ### 将来の検討
 - **Zig言語**を、Markdownの**高速字句解析/構文解析**など、特に低レベルなコア処理のさらなる最適化のために導入する可能性を保持
 
@@ -93,30 +101,41 @@ sequenceDiagram
 すべてのサービスは**Docker Compose**を用いて、本番環境をシミュレートする形で一括構築・管理されます。
 
 ### 必要な環境
-- Docker
-- Docker Compose
-- Node.js (クライアント開発用)
+- **Docker** (必須)
+- **Docker Compose** (必須)
+- Bun (ローカル開発時)
 - Rust / wasm-pack (Wasm開発用)
 
+### Docker構成
+- **minio**: S3互換オブジェクトストレージ
+- **dynamodb**: DynamoDB Local（インメモリモード）
+- **elasticsearch**: 全文検索エンジン
+- **api**: バックエンドAPIサーバー（Bun + Express）
+- **client**: フロントエンド開発サーバー（Vite）
+
 ### セットアップ
+
+**推奨: Docker Composeを使用した一括起動**
 
 ```bash
 # リポジトリのクローン
 git clone https://github.com/u1e2k/markdown-editor.git
 cd markdown-editor
 
-# 自動セットアップスクリプトの実行
-./setup.sh
+# すべてのサービスを一括起動
+docker compose up -d
 
-# または手動でセットアップ:
+# ログ確認
+docker compose logs -f
+```
 
+**手動セットアップ（開発用）**
+
+```bash
 # Wasmモジュールのビルド
 cd wasm
 wasm-pack build --target web
 cd ..
-
-# Docker環境の起動
-docker-compose up -d
 
 # サーバーのセットアップ
 cd server
