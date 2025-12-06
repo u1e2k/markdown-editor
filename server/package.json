@@ -5,6 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "bun --watch src/index.ts",
+    "dev:full": "docker compose up -d && sleep 5 && bun --watch src/index.ts",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:status": "docker compose ps",
     "build": "bun build src/index.ts --outdir dist --target node",
     "start": "bun dist/index.js",
     "test": "bun test"

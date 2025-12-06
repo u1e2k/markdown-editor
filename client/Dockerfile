@@ -9,7 +9,7 @@ RUN bun install
 # ソースコードをコピー
 COPY . .
 
-EXPOSE 8080
+EXPOSE 3000
 
 # 開発モードで起動
-CMD ["bun", "run", "dev"]
+CMD ["bun", "run", "dev", "--host", "0.0.0.0"]

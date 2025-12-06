@@ -16,9 +16,13 @@ export function EditorPage() {
     const title = prompt('ノートのタイトルを入力してください:');
     if (title) {
       try {
+        console.log('Creating note with title:', title);
         await createNote(title, '# ' + title + '\n\n新しいノート');
+        console.log('Note created successfully');
+        alert('ノートを作成しました！');
       } catch (error) {
         console.error('Failed to create note:', error);
+        alert('ノートの作成に失敗しました。コンソールを確認してください。');
       }
     }
   };

@@ -1,6 +1,26 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
+// Axiosのグローバル設定
+axios.defaults.timeout = 10000; // 10秒タイムアウト
+
+// エラーレスポンスのインターセプター
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+      console.error('❌ API server is not running. Please start the server with: cd server && bun run dev');
+    } else if (error.response) {
+      console.error('❌ API Error:', error.response.status, error.response.data);
+    } else if (error.request) {
+      console.error('❌ No response from API server:', error.message);
+    } else {
+      console.error('❌ Request error:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 export interface Note {
   id: string;
   title: string;
@@ -37,6 +57,7 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
       const response = await axios.get(`${API_BASE}/notes`);
       set({ notes: response.data.notes, loading: false });
     } catch (error) {
+      console.error('Failed to fetch notes:', error);
       set({ error: 'Failed to fetch notes', loading: false });
     }
   },
@@ -47,6 +68,7 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
       const response = await axios.get(`${API_BASE}/notes/${id}`);
       set({ currentNote: response.data, loading: false });
     } catch (error) {
+      console.error('Failed to fetch note:', error);
       set({ error: 'Failed to fetch note', loading: false });
     }
   },
@@ -63,6 +85,7 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
       }));
       return newNote;
     } catch (error) {
+      console.error('Failed to create note:', error);
       set({ error: 'Failed to create note', loading: false });
       throw error;
     }
@@ -78,6 +101,7 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
         loading: false,
       }));
     } catch (error) {
+      console.error('Failed to update note:', error);
       set({ error: 'Failed to update note', loading: false });
       throw error;
     }
@@ -93,6 +117,7 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
         loading: false,
       }));
     } catch (error) {
+      console.error('Failed to delete note:', error);
       set({ error: 'Failed to delete note', loading: false });
       throw error;
     }

@@ -62,11 +62,23 @@ noteRouter.get('/:id', async (req: Request, res: Response) => {
 // ノート作成
 noteRouter.post('/', async (req: Request, res: Response) => {
   try {
+    console.log('📝 POST /api/notes - Creating new note');
+    console.log('Request body:', req.body);
+    
     const { title, content } = req.body;
+    
+    if (!title || !content) {
+      console.error('❌ Missing title or content');
+      return res.status(400).json({ error: 'Title and content are required' });
+    }
+    
     const id = uuidv4();
     const now = new Date().toISOString();
+    
+    console.log('Generated ID:', id);
 
     // メタデータ保存
+    console.log('Saving metadata to DynamoDB...');
     await docClient.send(
       new PutCommand({
         TableName: 'Notes',
@@ -78,14 +90,18 @@ noteRouter.post('/', async (req: Request, res: Response) => {
         },
       })
     );
+    console.log('✓ Metadata saved');
 
     // コンテンツ保存
+    console.log('Saving content to MinIO...');
     const buffer = Buffer.from(content, 'utf-8');
     await minioClient.putObject('jade-notes', id, buffer, buffer.length, {
       'Content-Type': 'text/markdown',
     });
+    console.log('✓ Content saved');
 
     // 検索インデックス更新
+    console.log('Updating search index...');
     await elasticClient.index({
       index: 'notes',
       id,
@@ -96,11 +112,13 @@ noteRouter.post('/', async (req: Request, res: Response) => {
         updatedAt: now,
       },
     });
+    console.log('✓ Search index updated');
 
+    console.log('✅ Note created successfully:', id);
     res.status(201).json({ id, title, createdAt: now, updatedAt: now });
   } catch (error) {
-    console.error('Error creating note:', error);
-    res.status(500).json({ error: 'Failed to create note' });
+    console.error('❌ Error creating note:', error);
+    res.status(500).json({ error: 'Failed to create note', details: error instanceof Error ? error.message : String(error) });
   }
 });
 
