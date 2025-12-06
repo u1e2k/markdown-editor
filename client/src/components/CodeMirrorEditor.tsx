@@ -118,7 +118,6 @@ const livePreviewPlugin = ViewPlugin.fromClass(
         // 太字 **text**
         const boldPattern = /\*\*([^*]+)\*\*/g;
         let match;
-        let lastIndex = 0;
         const lineDecorations: any[] = [];
 
         while ((match = boldPattern.exec(lineText)) !== null) {
@@ -168,7 +167,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
     }
   },
   {
-    decorations: (v) => v.decorations,
+    decorations: (v: { decorations: DecorationSet }) => v.decorations,
   }
 );
 
@@ -203,7 +202,7 @@ export function CodeMirrorEditor({ value, onChange }: CodeMirrorEditorProps) {
       livePreviewPlugin,
       keymap.of([...defaultKeymap, ...historyKeymap]),
       EditorView.lineWrapping,
-      EditorView.updateListener.of((update) => {
+      EditorView.updateListener.of((update: ViewUpdate) => {
         if (update.docChanged) {
           onChange(update.state.doc.toString());
         }
