@@ -92,7 +92,5 @@
 .editor-body {
   flex: 1;
   overflow: auto;
-  padding: 0 32px;
-  padding-top: 20px;
-  padding-bottom: 40px;
+  padding: 0;
 }

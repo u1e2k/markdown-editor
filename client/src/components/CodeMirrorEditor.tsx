@@ -20,15 +20,15 @@ class HeadingWidget extends WidgetType {
   toDOM() {
     const heading = document.createElement(`h${this.level}`);
     heading.textContent = this.text;
-    const sizes = ['1.75em', '1.45em', '1.25em', '1.1em', '1em', '0.9em'];
+    const sizes = ['1.65em', '1.4em', '1.2em', '1.05em', '0.95em', '0.85em'];
     heading.style.fontSize = sizes[this.level - 1];
     heading.style.fontWeight = this.level <= 2 ? '700' : '600';
     heading.style.color = '#dcddde';
-    heading.style.lineHeight = '1.5';
+    heading.style.lineHeight = 'inherit';
     heading.style.margin = '0';
     heading.style.padding = '0';
     heading.style.fontFamily = 'inherit';
-    heading.style.display = 'block';
+    heading.style.display = 'inline';
     return heading;
   }
 }
@@ -104,84 +104,23 @@ class ListItemWidget extends WidgetType {
   }
 
   toDOM() {
-    const div = document.createElement('div');
-    div.style.paddingLeft = `${this.indent * 20}px`;
-    div.style.color = '#dcddde';
-    div.style.margin = '0';
-    div.style.padding = '0';
-    div.style.lineHeight = '1';
-    div.style.height = '1em';
-    div.style.display = 'flex';
-    div.style.alignItems = 'center';
+    const span = document.createElement('span');
+    span.style.paddingLeft = `${this.indent * 20}px`;
+    span.style.color = '#dcddde';
+    span.style.lineHeight = 'inherit';
+    span.style.display = 'inline';
     
     const bullet = document.createElement('span');
     bullet.textContent = this.marker === '-' || this.marker === '*' || this.marker === '+' ? '• ' : `${this.marker} `;
     bullet.style.color = '#7f8c8d';
-    bullet.style.marginRight = '0.3em';
-    bullet.style.flexShrink = '0';
-    bullet.style.lineHeight = '1';
+    bullet.style.marginRight = '0.5em';
     
     const content = document.createElement('span');
     content.textContent = this.text;
-    content.style.flex = '1';
-    content.style.lineHeight = '1';
     
-    div.appendChild(bullet);
-    div.appendChild(content);
-    return div;
-  }
-}
-
-// カスタムウィジェット: コードブロックの開始行（非表示）
-class CodeBlockStartWidget extends WidgetType {
-  toDOM() {
-    const div = document.createElement('div');
-    div.style.height = '0';
-    div.style.lineHeight = '0';
-    div.style.margin = '0';
-    div.style.padding = '0.2em 0 0 0';
-    div.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
-    div.style.borderRadius = '4px 4px 0 0';
-    div.textContent = '\u200B';
-    return div;
-  }
-}
-
-// カスタムウィジェット: コードブロックの終了行（非表示）
-class CodeBlockEndWidget extends WidgetType {
-  toDOM() {
-    const div = document.createElement('div');
-    div.style.height = '0';
-    div.style.lineHeight = '0';
-    div.style.margin = '0';
-    div.style.padding = '0 0 0.2em 0';
-    div.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
-    div.style.borderRadius = '0 0 4px 4px';
-    div.textContent = '\u200B';
-    return div;
-  }
-}
-
-// カスタムウィジェット: コードブロックの行
-class CodeBlockLineWidget extends WidgetType {
-  constructor(readonly text: string, readonly isFirst: boolean, readonly isLast: boolean) {
-    super();
-  }
-
-  toDOM() {
-    const div = document.createElement('div');
-    div.textContent = this.text || '\u200B'; // 空行の場合はゼロ幅スペース
-    div.style.fontFamily = '"Fira Code", "JetBrains Mono", Consolas, Monaco, monospace';
-    div.style.fontSize = '0.85em';
-    div.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
-    div.style.color = '#abb2bf';
-    div.style.padding = '0 1em';
-    div.style.margin = '0';
-    div.style.lineHeight = '1.5';
-    div.style.whiteSpace = 'pre';
-    div.style.tabSize = '4';
-    div.style.display = 'block';
-    return div;
+    span.appendChild(bullet);
+    span.appendChild(content);
+    return span;
   }
 }
 
@@ -192,17 +131,15 @@ class BlockquoteWidget extends WidgetType {
   }
 
   toDOM() {
-    const div = document.createElement('div');
-    div.style.borderLeft = '3px solid rgba(127, 140, 141, 0.4)';
-    div.style.paddingLeft = `${10 + this.level * 10}px`;
-    div.style.marginLeft = `${this.level * 4}px`;
-    div.style.color = '#9ca3af';
-    div.style.lineHeight = '1.5';
-    div.style.margin = '0';
-    div.style.padding = '0';
-    div.style.paddingLeft = `${10 + this.level * 10}px`;
-    div.textContent = this.text;
-    return div;
+    const span = document.createElement('span');
+    span.style.borderLeft = '3px solid rgba(127, 140, 141, 0.4)';
+    span.style.paddingLeft = `${10 + this.level * 10}px`;
+    span.style.marginLeft = `${this.level * 4}px`;
+    span.style.color = '#9ca3af';
+    span.style.lineHeight = 'inherit';
+    span.style.display = 'inline';
+    span.textContent = this.text;
+    return span;
   }
 }
 
@@ -227,36 +164,31 @@ class TaskListWidget extends WidgetType {
   }
 
   toDOM() {
-    const div = document.createElement('div');
-    div.style.paddingLeft = `${this.indent * 20}px`;
-    div.style.color = '#dcddde';
-    div.style.margin = '0';
-    div.style.padding = '0';
-    div.style.lineHeight = '1';
-    div.style.height = '1em';
-    div.style.display = 'flex';
-    div.style.alignItems = 'center';
+    const span = document.createElement('span');
+    span.style.paddingLeft = `${this.indent * 20}px`;
+    span.style.color = '#dcddde';
+    span.style.lineHeight = 'inherit';
+    span.style.display = 'inline';
     
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = this.checked;
-    checkbox.style.marginRight = '0.3em';
+    checkbox.style.marginRight = '0.5em';
     checkbox.style.marginTop = '0';
+    checkbox.style.marginBottom = '0';
     checkbox.style.cursor = 'pointer';
-    checkbox.style.flexShrink = '0';
+    checkbox.style.verticalAlign = 'middle';
     
     const content = document.createElement('span');
     content.textContent = this.text;
-    content.style.flex = '1';
-    content.style.lineHeight = '1';
     if (this.checked) {
       content.style.textDecoration = 'line-through';
       content.style.opacity = '0.5';
     }
     
-    div.appendChild(checkbox);
-    div.appendChild(content);
-    return div;
+    span.appendChild(checkbox);
+    span.appendChild(content);
+    return span;
   }
 }
 
@@ -402,30 +334,13 @@ const livePreviewPlugin = ViewPlugin.fromClass(
           
           const block = codeBlockInfo.find(b => lineNum >= b.start && lineNum <= b.end);
           if (block) {
-            if (lineNum === block.start) {
-              // 開始行を装飾（パディング）
-              decorations.push(
-                Decoration.replace({
-                  widget: new CodeBlockStartWidget(),
-                }).range(line.from, line.to)
-              );
-            } else if (lineNum === block.end) {
-              // 終了行を装飾（パディング）
-              decorations.push(
-                Decoration.replace({
-                  widget: new CodeBlockEndWidget(),
-                }).range(line.from, line.to)
-              );
-            } else {
-              // コードブロック内の行
-              const isFirst = lineNum === block.start + 1;
-              const isLast = lineNum === block.end - 1;
-              decorations.push(
-                Decoration.replace({
-                  widget: new CodeBlockLineWidget(lineText, isFirst, isLast),
-                }).range(line.from, line.to)
-              );
-            }
+            // コードブロック全体を置換ではなく、マークで装飾する
+            // 背景色を適用
+            decorations.push(
+              Decoration.line({
+                class: 'cm-code-block-line',
+              }).range(line.from)
+            );
           }
           continue;
         }
@@ -703,7 +618,7 @@ export function CodeMirrorEditor({ value, onChange }: CodeMirrorEditorProps) {
           lineHeight: '1.6',
         },
         '.cm-content': { 
-          padding: '0',
+          padding: '20px 32px 40px 32px',
           lineHeight: '1.6',
           color: '#dcddde',
           caretColor: '#4fc3f7',
@@ -724,6 +639,12 @@ export function CodeMirrorEditor({ value, onChange }: CodeMirrorEditorProps) {
         },
         '.cm-lineNumber': {
           color: '#6e7681',
+        },
+        '.cm-code-block-line': {
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          fontFamily: '"Fira Code", "JetBrains Mono", Consolas, Monaco, monospace',
+          fontSize: '13px',
+          color: '#abb2bf',
         },
       }),
     ];
