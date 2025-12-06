@@ -5,17 +5,4 @@
   flex-direction: column;
 }
 
-/* プレビュー用シンタックスハイライト */
-.cm-syntax-keyword { color: #c678dd; font-weight: 500; }
-.cm-syntax-string { color: #98c379; }
-.cm-syntax-comment { color: #5c6370; font-style: italic; }
-.cm-syntax-number { color: #d19a66; }
-.cm-syntax-function { color: #61afef; }
-.cm-syntax-tag { color: #e06c75; }
-.cm-syntax-attribute { color: #d19a66; }
-.cm-syntax-selector { color: #e06c75; }
-.cm-syntax-property { color: #d19a66; }
-.cm-syntax-value { color: #98c379; }
-.cm-bold-text { font-weight: 600; color: #dcddde; }
-.cm-italic-text { font-style: italic; color: #dcddde; }
-.cm-strikethrough-text { text-decoration: line-through; opacity: 0.6; color: #9ca3af; }
+/* シンタックスハイライトスタイルは CodeMirrorEditorNew.tsx の EditorView.theme で定義 */

@@ -35,3 +35,4 @@ logs/
 *.log
 
 vault/*
+client/package-lock.json
