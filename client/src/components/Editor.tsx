@@ -21,6 +21,8 @@ export function Editor({ note }: EditorProps) {
   // ノートが変わったら、frontmatterとbodyに分解
   useEffect(() => {
     const parsed = parseFrontmatter(note.content || '');
+    console.log('Parsed frontmatter:', parsed.frontmatter);
+    console.log('Note content:', note.content);
     setFrontmatter(parsed.frontmatter);
     setBodyContent(parsed.body);
     setContent(note.content || '');
@@ -34,10 +36,10 @@ export function Editor({ note }: EditorProps) {
   }, []);
 
   const handleFrontmatterChange = (newFrontmatter: Frontmatter) => {
-    // updated日付を現在の日付に自動更新
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式
+    const today = new Date().toISOString().split('T')[0];
     const updatedFrontmatter = {
       ...newFrontmatter,
+      created: newFrontmatter.created || frontmatter.created || today, // createdを確実に保持
       updated: today,
     };
     setFrontmatter(updatedFrontmatter);
@@ -45,10 +47,15 @@ export function Editor({ note }: EditorProps) {
   };
 
   const handleBodyChange = (newBody: string) => {
-    // updated日付を現在の日付に自動更新
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式
+    // 実際に変更があった場合のみupdatedを更新
+    if (newBody === bodyContent) {
+      return;
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
     const updatedFrontmatter = {
       ...frontmatter,
+      created: frontmatter.created || today, // createdがない場合は今日の日付
       updated: today,
     };
     setFrontmatter(updatedFrontmatter);

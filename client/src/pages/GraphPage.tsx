@@ -19,7 +19,7 @@ interface GraphLink {
 
 export function GraphPage() {
   const svgRef = useRef<SVGSVGElement>(null);
-  const { notes, fetchNotes } = useNoteStore();
+  const { notes, fetchNotes, fetchNote } = useNoteStore();
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [links, setLinks] = useState<GraphLink[]>([]);
   const [notesWithContent, setNotesWithContent] = useState<any[]>([]);
@@ -179,14 +179,24 @@ export function GraphPage() {
       .attr('r', 20)
       .attr('fill', '#4ec9b0')
       .attr('stroke', '#fff')
-      .attr('stroke-width', 2);
+      .attr('stroke-width', 2)
+      .style('cursor', 'pointer')
+      .on('click', (event: any, d: GraphNode) => {
+        event.stopPropagation();
+        fetchNote(d.id);
+      });
 
     node.append('text')
       .text((d: GraphNode) => d.title)
       .attr('x', 25)
       .attr('y', 5)
       .attr('fill', '#cccccc')
-      .attr('font-size', '12px');
+      .attr('font-size', '12px')
+      .style('cursor', 'pointer')
+      .on('click', (event: any, d: GraphNode) => {
+        event.stopPropagation();
+        fetchNote(d.id);
+      });
 
     // シミュレーション更新
     simulation.on('tick', () => {

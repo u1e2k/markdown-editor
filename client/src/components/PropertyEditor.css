@@ -47,6 +47,13 @@
 
 .property-value {
   flex: 1;
+  display: flex;
+  gap: 8px;
+}
+
+.property-value-with-delete {
+  display: flex;
+  align-items: center;
 }
 
 .tags-container {
@@ -118,4 +125,93 @@
 
 .property-select {
   cursor: pointer;
+}
+
+.property-delete {
+  background: transparent;
+  border: none;
+  color: #858585;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.2s;
+  opacity: 0.7;
+}
+
+.property-delete:hover {
+  color: #ff6b6b;
+  opacity: 1;
+}
+
+.property-add-row {
+  background: #252526;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 8px;
+  border: 1px solid #3e3e42;
+}
+
+.property-key-input {
+  width: 100px;
+  padding: 6px 8px;
+  background-color: #3e3e42;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #cccccc;
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+}
+
+.property-key-input:focus {
+  border-color: #0e639c;
+}
+
+.property-add-confirm,
+.property-add-cancel {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.property-add-confirm {
+  background: #0e639c;
+  color: white;
+}
+
+.property-add-confirm:hover {
+  background: #1177bb;
+}
+
+.property-add-cancel {
+  background: transparent;
+  color: #858585;
+  font-size: 16px;
+  padding: 0 8px;
+}
+
+.property-add-cancel:hover {
+  color: #ff6b6b;
+}
+
+.add-property-button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  background: transparent;
+  border: 1px dashed #555;
+  border-radius: 4px;
+  color: #858585;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.add-property-button:hover {
+  border-color: #0e639c;
+  color: #0e639c;
+  background: rgba(14, 99, 156, 0.05);
 }

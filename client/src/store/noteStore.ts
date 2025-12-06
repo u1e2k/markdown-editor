@@ -78,9 +78,9 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     try {
       const response = await axios.post(`${API_BASE}/notes`, { title, content });
       const newNote = response.data;
+      // ノート一覧に追加するだけで、currentNoteはfetchNoteで設定する
       set(state => ({ 
         notes: [...state.notes, newNote], 
-        currentNote: { ...newNote, content },
         loading: false 
       }));
       return newNote;

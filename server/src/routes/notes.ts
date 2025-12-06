@@ -76,6 +76,12 @@ noteRouter.post('/', async (req: Request, res: Response) => {
     
     const { title, content = '' } = req.body;
     
+    console.log('📄 Content being saved:');
+    console.log('---START---');
+    console.log(content);
+    console.log('---END---');
+    console.log('Content length:', content.length);
+    
     if (!title) {
       console.error('❌ Missing title');
       return res.status(400).json({ error: 'Title is required' });
