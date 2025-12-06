@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { useNoteStore } from '../store/noteStore';
+import { parseFrontmatter } from '../utils/frontmatter';
 import './GraphPage.css';
 
 interface GraphNode {
@@ -13,6 +14,7 @@ interface GraphNode {
 interface GraphLink {
   source: string | GraphNode;
   target: string | GraphNode;
+  type: 'wiki' | 'tag'; // リンクの種類を追加
 }
 
 export function GraphPage() {
@@ -58,11 +60,12 @@ export function GraphPage() {
       title: note.title,
     }));
 
-    // リンクを抽出（簡易版）
+    // リンクを抽出
     const graphLinks: GraphLink[] = [];
+    
+    // 1. Wikiリンク [[...]]
     notesWithContent.forEach(note => {
       if (note.content) {
-        // [[リンク]] パターンを検索
         const linkPattern = /\[\[([^\]]+)\]\]/g;
         let match;
         while ((match = linkPattern.exec(note.content)) !== null) {
@@ -72,6 +75,49 @@ export function GraphPage() {
             graphLinks.push({
               source: note.id,
               target: target.id,
+              type: 'wiki',
+            });
+          }
+        }
+      }
+    });
+
+    // 2. タグベースのリンク
+    const tagMap = new Map<string, string[]>(); // tag -> [noteIds]
+    
+    notesWithContent.forEach(note => {
+      if (note.content) {
+        const { frontmatter } = parseFrontmatter(note.content);
+        const tags = frontmatter.tags || [];
+        
+        tags.forEach((tag: string) => {
+          if (!tagMap.has(tag)) {
+            tagMap.set(tag, []);
+          }
+          tagMap.get(tag)!.push(note.id);
+        });
+      }
+    });
+
+    // 同じタグを持つノート同士をリンク
+    tagMap.forEach((noteIds) => {
+      if (noteIds.length < 2) return; // 1つしかないタグはスキップ
+      
+      // すべての組み合わせでリンクを作成
+      for (let i = 0; i < noteIds.length; i++) {
+        for (let j = i + 1; j < noteIds.length; j++) {
+          // 既存のWikiリンクと重複しないかチェック
+          const isDuplicate = graphLinks.some(
+            link =>
+              (link.source === noteIds[i] && link.target === noteIds[j]) ||
+              (link.source === noteIds[j] && link.target === noteIds[i])
+          );
+          
+          if (!isDuplicate) {
+            graphLinks.push({
+              source: noteIds[i],
+              target: noteIds[j],
+              type: 'tag',
             });
           }
         }
@@ -109,14 +155,15 @@ export function GraphPage() {
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(50));
 
-    // リンク描画
+    // リンク描画（種類によって見た目を変える）
     const link = g.append('g')
       .selectAll('line')
       .data(links)
       .join('line')
-      .attr('stroke', '#999')
+      .attr('stroke', (d: any) => d.type === 'wiki' ? '#4fc3f7' : '#9c27b0')
       .attr('stroke-opacity', 0.6)
-      .attr('stroke-width', 2);
+      .attr('stroke-width', (d: any) => d.type === 'wiki' ? 2 : 1.5)
+      .attr('stroke-dasharray', (d: any) => d.type === 'tag' ? '5,5' : '0');
 
     // ノード描画
     const node = g.append('g')
@@ -179,6 +226,20 @@ export function GraphPage() {
       <div className="graph-info">
         <h2>ノートグラフ</h2>
         <p>{nodes.length} ノード, {links.length} リンク</p>
+        <div className="graph-legend">
+          <div className="legend-item">
+            <svg width="40" height="2">
+              <line x1="0" y1="1" x2="40" y2="1" stroke="#4fc3f7" strokeWidth="2" />
+            </svg>
+            <span>Wikiリンク</span>
+          </div>
+          <div className="legend-item">
+            <svg width="40" height="2">
+              <line x1="0" y1="1" x2="40" y2="1" stroke="#9c27b0" strokeWidth="1.5" strokeDasharray="5,5" />
+            </svg>
+            <span>タグリンク</span>
+          </div>
+        </div>
       </div>
       <svg ref={svgRef} className="graph-svg" />
     </div>

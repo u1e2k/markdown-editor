@@ -35,7 +35,17 @@ export function EditorPage() {
     try {
       const now = new Date();
       const defaultTitle = `無題のノート ${now.toLocaleString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
-      const newNote = await createNote(defaultTitle, '');
+      const today = now.toISOString().split('T')[0]; // YYYY-MM-DD形式
+      
+      // frontmatterを含むコンテンツを作成
+      const initialContent = `---
+created: ${today}
+updated: ${today}
+---
+
+`;
+      
+      const newNote = await createNote(defaultTitle, initialContent);
       // 作成したノートを開く（contentを取得するため）
       if (newNote && newNote.id) {
         await fetchNote(newNote.id);

@@ -1,0 +1,121 @@
+.property-editor {
+  background-color: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+  font-size: 13px;
+}
+
+.property-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.property-header:hover {
+  background-color: #37373d;
+}
+
+.property-toggle {
+  margin-right: 8px;
+  color: #cccccc;
+  font-size: 10px;
+}
+
+.property-title {
+  color: #cccccc;
+  font-weight: 500;
+}
+
+.property-content {
+  padding: 10px 15px 15px;
+}
+
+.property-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.property-label {
+  width: 80px;
+  padding-top: 6px;
+  color: #858585;
+  font-size: 12px;
+}
+
+.property-value {
+  flex: 1;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #0e639c;
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.tag-remove {
+  margin-left: 6px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.tag-remove:hover {
+  opacity: 1;
+}
+
+.tag-input {
+  flex: 1;
+  min-width: 120px;
+  padding: 4px 8px;
+  background-color: #3e3e42;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #cccccc;
+  font-size: 12px;
+  outline: none;
+}
+
+.tag-input:focus {
+  border-color: #0e639c;
+}
+
+.property-input,
+.property-select {
+  width: 100%;
+  padding: 6px 8px;
+  background-color: #3e3e42;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #cccccc;
+  font-size: 12px;
+  outline: none;
+}
+
+.property-input:focus,
+.property-select:focus {
+  border-color: #0e639c;
+}
+
+.property-select {
+  cursor: pointer;
+}
