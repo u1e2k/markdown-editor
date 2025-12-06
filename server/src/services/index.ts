@@ -95,74 +95,85 @@ export const docClient = DynamoDBDocumentClient.from(dynamoClient);
 // サービス初期化
 export const initializeServices = async () => {
   const errors: string[] = [];
+  const warnings: string[] = [];
+  const useVault = process.env.VAULT_PATH !== undefined;
+  
+  if (useVault) {
+    console.log('📁 Using VAULT mode - file system storage');
+    console.log('   MinIO and DynamoDB will be skipped');
+  }
   
   try {
-    // MinIO バケット作成
-    console.log('🔧 Checking MinIO...');
-    try {
-      const bucketName = 'jade-notes';
-      const bucketExists = await minioClient.bucketExists(bucketName);
-      if (!bucketExists) {
-        await minioClient.makeBucket(bucketName);
-        console.log('✓ MinIO bucket created:', bucketName);
-      } else {
-        console.log('✓ MinIO bucket already exists:', bucketName);
+    // MinIO バケット作成（vaultモードではスキップ）
+    if (!useVault) {
+      console.log('🔧 Checking MinIO...');
+      try {
+        const bucketName = 'jade-notes';
+        const bucketExists = await minioClient.bucketExists(bucketName);
+        if (!bucketExists) {
+          await minioClient.makeBucket(bucketName);
+          console.log('✓ MinIO bucket created:', bucketName);
+        } else {
+          console.log('✓ MinIO bucket already exists:', bucketName);
+        }
+      } catch (error: any) {
+        console.error('❌ MinIO connection failed:', error.message);
+        errors.push(`MinIO: ${error.message}`);
       }
-    } catch (error: any) {
-      console.error('❌ MinIO connection failed:', error.message);
-      errors.push(`MinIO: ${error.message}`);
     }
 
-    // DynamoDB テーブル作成
-    console.log('🔧 Checking DynamoDB...');
-    try {
-      // リトライロジック付きでテーブル作成を試みる
-      let retries = 5;
-      let lastError: any;
-      
-      while (retries > 0) {
-        try {
-          await dynamoClient.send(
-            new CreateTableCommand({
-              TableName: 'Notes',
-              KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
-              AttributeDefinitions: [
-                { AttributeName: 'id', AttributeType: 'S' },
-              ],
-              BillingMode: 'PAY_PER_REQUEST',
-            })
-          );
-          console.log('✓ DynamoDB table created: Notes');
-          break;
-        } catch (error: any) {
-          if (error.name === 'ResourceInUseException') {
-            console.log('✓ DynamoDB table already exists: Notes');
+    // DynamoDB テーブル作成（vaultモードではスキップ）
+    if (!useVault) {
+      console.log('🔧 Checking DynamoDB...');
+      try {
+        // リトライロジック付きでテーブル作成を試みる
+        let retries = 5;
+        let lastError: any;
+        
+        while (retries > 0) {
+          try {
+            await dynamoClient.send(
+              new CreateTableCommand({
+                TableName: 'Notes',
+                KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+                AttributeDefinitions: [
+                  { AttributeName: 'id', AttributeType: 'S' },
+                ],
+                BillingMode: 'PAY_PER_REQUEST',
+              })
+            );
+            console.log('✓ DynamoDB table created: Notes');
             break;
-          }
-          
-          lastError = error;
-          retries--;
-          
-          if (retries > 0) {
-            console.log(`  Retrying DynamoDB connection... (${retries} attempts left)`);
-            await new Promise(resolve => setTimeout(resolve, 2000));
+          } catch (error: any) {
+            if (error.name === 'ResourceInUseException') {
+              console.log('✓ DynamoDB table already exists: Notes');
+              break;
+            }
+            
+            lastError = error;
+            retries--;
+            
+            if (retries > 0) {
+              console.log(`  Retrying DynamoDB connection... (${retries} attempts left)`);
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
           }
         }
+        
+        if (retries === 0) {
+          throw lastError;
+        }
+      } catch (error: any) {
+        console.error('❌ DynamoDB connection failed:', error.message);
+        errors.push(`DynamoDB: ${error.message}`);
       }
-      
-      if (retries === 0) {
-        throw lastError;
-      }
-    } catch (error: any) {
-      console.error('❌ DynamoDB connection failed:', error.message);
-      errors.push(`DynamoDB: ${error.message}`);
     }
 
-    // Elasticsearch インデックス作成
+    // Elasticsearch インデックス作成（オプション - エラーは警告として扱う）
     console.log('🔧 Checking Elasticsearch...');
     try {
       // リトライロジック付きでインデックス作成を試みる
-      let retries = 5;
+      let retries = 3; // リトライ回数を減らす
       let lastError: any;
       
       while (retries > 0) {
@@ -193,7 +204,7 @@ export const initializeServices = async () => {
           
           if (retries > 0) {
             console.log(`  Retrying Elasticsearch connection... (${retries} attempts left)`);
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
         }
       }
@@ -202,21 +213,31 @@ export const initializeServices = async () => {
         throw lastError;
       }
     } catch (error: any) {
-      console.error('❌ Elasticsearch connection failed:', error.message || String(error));
-      errors.push(`Elasticsearch: ${error.message || String(error)}`);
+      console.warn('⚠️  Elasticsearch connection failed:', error.message || String(error));
+      console.warn('   Search functionality will be limited');
+      warnings.push(`Elasticsearch: ${error.message || String(error)}`);
     }
 
     if (errors.length > 0) {
       console.error('');
-      console.error('⚠️  Some services failed to initialize:');
+      console.error('⚠️  Some required services failed to initialize:');
       errors.forEach(err => console.error('   -', err));
       console.error('');
       console.error('💡 To fix this, run: docker compose up -d');
       throw new Error('Service initialization failed. See errors above.');
     }
 
+    if (warnings.length > 0) {
+      console.log('');
+      console.log('⚠️  Some optional services are unavailable:');
+      warnings.forEach(warn => console.log('   -', warn));
+    }
+
     console.log('');
-    console.log('✅ All services initialized successfully');
+    console.log('✅ All required services initialized successfully');
+    if (useVault) {
+      console.log('📁 Using vault directory for note storage');
+    }
     console.log('');
   } catch (error) {
     if (errors.length === 0) {

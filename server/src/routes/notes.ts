@@ -3,19 +3,49 @@ import { v4 as uuidv4 } from 'uuid';
 import { minioClient, docClient, elasticClient } from '../services';
 import { PutCommand, GetCommand, ScanCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { Readable } from 'stream';
+import fs from 'fs/promises';
+import path from 'path';
+import matter from 'gray-matter';
 
 export const noteRouter = Router();
+
+const VAULT_PATH = process.env.VAULT_PATH || path.join(process.cwd(), '../vault');
+
+// vaultフォルダの初期化
+const ensureVaultExists = async () => {
+  try {
+    await fs.access(VAULT_PATH);
+  } catch {
+    await fs.mkdir(VAULT_PATH, { recursive: true });
+  }
+};
 
 // ノート一覧取得
 noteRouter.get('/', async (req: Request, res: Response) => {
   try {
-    const result = await docClient.send(
-      new ScanCommand({
-        TableName: 'Notes',
+    await ensureVaultExists();
+    const files = await fs.readdir(VAULT_PATH);
+    const mdFiles = files.filter(f => f.endsWith('.md'));
+    
+    const notes = await Promise.all(
+      mdFiles.map(async (filename) => {
+        const filepath = path.join(VAULT_PATH, filename);
+        const content = await fs.readFile(filepath, 'utf-8');
+        const { data, content: body } = matter(content);
+        const stats = await fs.stat(filepath);
+        
+        const id = filename.replace('.md', '');
+        return {
+          id,
+          title: data.title || filename.replace('.md', ''),
+          createdAt: data.createdAt || stats.birthtime.toISOString(),
+          updatedAt: data.updatedAt || stats.mtime.toISOString(),
+          ...data
+        };
       })
     );
 
-    res.json({ notes: result.Items || [] });
+    res.json({ notes });
   } catch (error) {
     console.error('Error fetching notes:', error);
     res.status(500).json({ error: 'Failed to fetch notes' });
@@ -26,40 +56,30 @@ noteRouter.get('/', async (req: Request, res: Response) => {
 noteRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
     console.log('📖 GET /api/notes/:id - Fetching note:', id);
 
-    // メタデータ取得
-    console.log('Fetching metadata from DynamoDB...');
-    const metaResult = await docClient.send(
-      new GetCommand({
-        TableName: 'Notes',
-        Key: { id },
-      })
-    );
-
-    if (!metaResult.Item) {
+    const filepath = path.join(VAULT_PATH, `${id}.md`);
+    
+    try {
+      await fs.access(filepath);
+    } catch {
       console.log('❌ Note not found:', id);
       return res.status(404).json({ error: 'Note not found' });
     }
-    console.log('✓ Metadata retrieved:', metaResult.Item);
 
-    // コンテンツ取得
-    console.log('Fetching content from MinIO...');
-    const stream = await minioClient.getObject('jade-notes', id);
-    const chunks: Buffer[] = [];
-    
-    for await (const chunk of stream) {
-      chunks.push(Buffer.from(chunk));
-    }
-    
-    const content = Buffer.concat(chunks).toString('utf-8');
-    console.log('✓ Content retrieved, length:', content.length);
+    const fileContent = await fs.readFile(filepath, 'utf-8');
+    const { data, content } = matter(fileContent);
+    const stats = await fs.stat(filepath);
 
     const response = {
-      ...metaResult.Item,
+      id,
+      title: data.title || id,
       content,
+      createdAt: data.createdAt || stats.birthtime.toISOString(),
+      updatedAt: data.updatedAt || stats.mtime.toISOString(),
+      ...data
     };
+    
     console.log('✅ Returning note with content length:', response.content?.length);
     res.json(response);
   } catch (error) {
@@ -87,47 +107,44 @@ noteRouter.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Title is required' });
     }
     
+    await ensureVaultExists();
+    
     const id = uuidv4();
     const now = new Date().toISOString();
     
     console.log('Generated ID:', id);
 
-    // メタデータ保存
-    console.log('Saving metadata to DynamoDB...');
-    await docClient.send(
-      new PutCommand({
-        TableName: 'Notes',
-        Item: {
+    // frontmatterとコンテンツを結合
+    const frontmatter = {
+      title,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    const fileContent = matter.stringify(content, frontmatter);
+    const filepath = path.join(VAULT_PATH, `${id}.md`);
+    
+    console.log('Saving to vault...');
+    await fs.writeFile(filepath, fileContent, 'utf-8');
+    console.log('✓ File saved');
+
+    // 検索インデックス更新（エラーは無視）
+    try {
+      console.log('Updating search index...');
+      await elasticClient.index({
+        index: 'notes',
+        id,
+        document: {
           id,
           title,
-          createdAt: now,
+          content,
           updatedAt: now,
         },
-      })
-    );
-    console.log('✓ Metadata saved');
-
-    // コンテンツ保存
-    console.log('Saving content to MinIO...');
-    const buffer = Buffer.from(content, 'utf-8');
-    await minioClient.putObject('jade-notes', id, buffer, buffer.length, {
-      'Content-Type': 'text/markdown',
-    });
-    console.log('✓ Content saved');
-
-    // 検索インデックス更新
-    console.log('Updating search index...');
-    await elasticClient.index({
-      index: 'notes',
-      id,
-      document: {
-        id,
-        title,
-        content,
-        updatedAt: now,
-      },
-    });
-    console.log('✓ Search index updated');
+      });
+      console.log('✓ Search index updated');
+    } catch (err) {
+      console.warn('⚠️  Search index update failed:', err);
+    }
 
     console.log('✅ Note created successfully:', id);
     res.status(201).json({ id, title, createdAt: now, updatedAt: now });
@@ -148,40 +165,48 @@ noteRouter.put('/:id', async (req: Request, res: Response) => {
     console.log('Title:', title);
     console.log('Content length:', content?.length || 0);
 
-    // メタデータ更新
-    console.log('Updating metadata in DynamoDB...');
-    await docClient.send(
-      new PutCommand({
-        TableName: 'Notes',
-        Item: {
-          id,
+    const filepath = path.join(VAULT_PATH, `${id}.md`);
+    
+    // 既存のfrontmatterを読み込み
+    let existingData: any = {};
+    try {
+      const existing = await fs.readFile(filepath, 'utf-8');
+      const parsed = matter(existing);
+      existingData = parsed.data;
+    } catch {
+      // ファイルが存在しない場合は新規作成
+    }
+
+    // frontmatterを更新
+    const frontmatter = {
+      ...existingData,
+      title,
+      updatedAt: now,
+      createdAt: existingData.createdAt || now
+    };
+    
+    const fileContent = matter.stringify(content, frontmatter);
+    
+    console.log('Updating file in vault...');
+    await fs.writeFile(filepath, fileContent, 'utf-8');
+    console.log('✓ File updated');
+
+    // 検索インデックス更新（エラーは無視）
+    try {
+      console.log('Updating search index...');
+      await elasticClient.update({
+        index: 'notes',
+        id,
+        doc: {
           title,
+          content,
           updatedAt: now,
         },
-      })
-    );
-    console.log('✓ Metadata updated');
-
-    // コンテンツ更新
-    console.log('Updating content in MinIO...');
-    const buffer = Buffer.from(content, 'utf-8');
-    await minioClient.putObject('jade-notes', id, buffer, buffer.length, {
-      'Content-Type': 'text/markdown',
-    });
-    console.log('✓ Content updated');
-
-    // 検索インデックス更新
-    console.log('Updating search index...');
-    await elasticClient.update({
-      index: 'notes',
-      id,
-      doc: {
-        title,
-        content,
-        updatedAt: now,
-      },
-    });
-    console.log('✓ Search index updated');
+      });
+      console.log('✓ Search index updated');
+    } catch (err) {
+      console.warn('⚠️  Search index update failed:', err);
+    }
 
     console.log('✅ Note updated successfully:', id);
     res.json({ id, title, updatedAt: now });
@@ -196,22 +221,22 @@ noteRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // メタデータ削除
-    await docClient.send(
-      new DeleteCommand({
-        TableName: 'Notes',
-        Key: { id },
-      })
-    );
+    const filepath = path.join(VAULT_PATH, `${id}.md`);
+    
+    console.log('Deleting file from vault...');
+    await fs.unlink(filepath);
+    console.log('✓ File deleted');
 
-    // コンテンツ削除
-    await minioClient.removeObject('jade-notes', id);
-
-    // 検索インデックス削除
-    await elasticClient.delete({
-      index: 'notes',
-      id,
-    });
+    // 検索インデックス削除（エラーは無視）
+    try {
+      await elasticClient.delete({
+        index: 'notes',
+        id,
+      });
+      console.log('✓ Search index deleted');
+    } catch (err) {
+      console.warn('⚠️  Search index delete failed:', err);
+    }
 
     res.json({ success: true });
   } catch (error) {

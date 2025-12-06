@@ -52,6 +52,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=8080
+      - VAULT_PATH=/vault
       - MINIO_ENDPOINT=minio
       - MINIO_PORT=9000
       - MINIO_ACCESS_KEY=minioadmin
@@ -64,6 +65,7 @@ services:
       - elasticsearch
     volumes:
       - ./server:/app
+      - ./vault:/vault
       - /app/node_modules
     networks:
       - jade-network
