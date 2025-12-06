@@ -17,27 +17,57 @@ interface GraphLink {
 
 export function GraphPage() {
   const svgRef = useRef<SVGSVGElement>(null);
-  const { notes } = useNoteStore();
+  const { notes, fetchNotes } = useNoteStore();
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [links, setLinks] = useState<GraphLink[]>([]);
+  const [notesWithContent, setNotesWithContent] = useState<any[]>([]);
+
+  // ノート一覧とコンテンツを取得
+  useEffect(() => {
+    const fetchAllNotes = async () => {
+      await fetchNotes();
+    };
+    fetchAllNotes();
+  }, [fetchNotes]);
+
+  // すべてのノートのコンテンツを取得
+  useEffect(() => {
+    const fetchContents = async () => {
+      const promises = notes.map(async (note) => {
+        try {
+          const response = await fetch(`/api/notes/${note.id}`);
+          return await response.json();
+        } catch (error) {
+          console.error('Failed to fetch note content:', error);
+          return note;
+        }
+      });
+      const results = await Promise.all(promises);
+      setNotesWithContent(results);
+    };
+
+    if (notes.length > 0) {
+      fetchContents();
+    }
+  }, [notes]);
 
   useEffect(() => {
     // ノートからグラフデータを生成
-    const graphNodes: GraphNode[] = notes.map(note => ({
+    const graphNodes: GraphNode[] = notesWithContent.map(note => ({
       id: note.id,
       title: note.title,
     }));
 
     // リンクを抽出（簡易版）
     const graphLinks: GraphLink[] = [];
-    notes.forEach(note => {
+    notesWithContent.forEach(note => {
       if (note.content) {
         // [[リンク]] パターンを検索
         const linkPattern = /\[\[([^\]]+)\]\]/g;
         let match;
         while ((match = linkPattern.exec(note.content)) !== null) {
           const targetTitle = match[1];
-          const target = notes.find(n => n.title === targetTitle);
+          const target = notesWithContent.find(n => n.title === targetTitle);
           if (target) {
             graphLinks.push({
               source: note.id,
@@ -50,7 +80,7 @@ export function GraphPage() {
 
     setNodes(graphNodes);
     setLinks(graphLinks);
-  }, [notes]);
+  }, [notesWithContent]);
 
   useEffect(() => {
     if (!svgRef.current || nodes.length === 0) return;

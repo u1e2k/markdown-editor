@@ -87,6 +87,25 @@ export function Editor({ note }: EditorProps) {
             lineNumbers: 'on',
             wordWrap: 'on',
             padding: { top: 20, bottom: 20 },
+            // Monaco Editorの検証を無効化
+            'semanticHighlighting.enabled': false,
+          }}
+          beforeMount={(monaco) => {
+            // [[リンク]]構文のカスタムトークナイザを登録
+            monaco.languages.setMonarchTokensProvider('markdown', {
+              tokenizer: {
+                root: [
+                  // Wikiリンク構文 [[...]]
+                  [/\[\[[^\]]+\]\]/, 'string.link'],
+                  // 通常のMarkdownトークン
+                  [/^#{1,6}\s.*$/, 'keyword'],
+                  [/\*\*.*?\*\*/, 'strong'],
+                  [/\*.*?\*/, 'emphasis'],
+                  [/`[^`]+`/, 'variable'],
+                  [/\[.*?\]\(.*?\)/, 'string.link'],
+                ],
+              },
+            } as any);
           }}
         />
       </div>

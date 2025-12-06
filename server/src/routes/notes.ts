@@ -74,11 +74,11 @@ noteRouter.post('/', async (req: Request, res: Response) => {
     console.log('📝 POST /api/notes - Creating new note');
     console.log('Request body:', req.body);
     
-    const { title, content } = req.body;
+    const { title, content = '' } = req.body;
     
-    if (!title || !content) {
-      console.error('❌ Missing title or content');
-      return res.status(400).json({ error: 'Title and content are required' });
+    if (!title) {
+      console.error('❌ Missing title');
+      return res.status(400).json({ error: 'Title is required' });
     }
     
     const id = uuidv4();

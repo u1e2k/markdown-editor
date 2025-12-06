@@ -9,21 +9,38 @@ export function EditorPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    fetchNotes();
-  }, [fetchNotes]);
+    const loadNotes = async () => {
+      await fetchNotes();
+      
+      // 最後に開いていたノートを復元
+      const lastNoteId = localStorage.getItem('lastOpenedNoteId');
+      if (lastNoteId) {
+        await fetchNote(lastNoteId);
+      }
+    };
+    
+    loadNotes();
+  }, [fetchNotes, fetchNote]);
+
+  // currentNoteが変更されたらlocalStorageに保存
+  useEffect(() => {
+    if (currentNote) {
+      localStorage.setItem('lastOpenedNoteId', currentNote.id);
+    }
+  }, [currentNote]);
 
   const handleCreateNote = async () => {
-    const title = prompt('ノートのタイトルを入力してください:');
-    if (title) {
-      try {
-        console.log('Creating note with title:', title);
-        await createNote(title, '# ' + title + '\n\n新しいノート');
-        console.log('Note created successfully');
-        alert('ノートを作成しました！');
-      } catch (error) {
-        console.error('Failed to create note:', error);
-        alert('ノートの作成に失敗しました。コンソールを確認してください。');
+    try {
+      const now = new Date();
+      const defaultTitle = `無題のノート ${now.toLocaleString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+      const newNote = await createNote(defaultTitle, '');
+      // 作成したノートを開く（contentを取得するため）
+      if (newNote && newNote.id) {
+        await fetchNote(newNote.id);
       }
+    } catch (error) {
+      console.error('Failed to create note:', error);
+      alert('ノートの作成に失敗しました。');
     }
   };
 
