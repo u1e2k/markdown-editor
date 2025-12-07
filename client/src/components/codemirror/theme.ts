@@ -13,7 +13,7 @@ export const customHighlight = HighlightStyle.define([
     { tag: tags.strong, fontWeight: 'bold', color: '#dcddde' },
     { tag: tags.emphasis, fontStyle: 'italic', color: '#b5bcc7' },
     { tag: tags.link, color: '#4fc3f7', textDecoration: 'underline' },
-    { tag: tags.monospace, fontFamily: '"Fira Code", "JetBrains Mono", Consolas, monospace', backgroundColor: 'rgba(0,0,0,0.3)', padding: '2px 4px', borderRadius: '3px', fontSize: '0.92em' },
+    { tag: tags.monospace, fontFamily: '"Fira Code", "JetBrains Mono", Consolas, monospace', padding: '2px 4px', borderRadius: '3px', fontSize: '0.92em' },
 ]);
 
 // エディタテーマ
@@ -49,6 +49,29 @@ export const editorTheme = EditorView.theme({
         fontFamily: '"Fira Code", "JetBrains Mono", Consolas, Monaco, monospace',
         fontSize: '14px',
         padding: '0 8px',
+        position: 'relative',
+    },
+    '.cm-code-block-line[data-code-block-first-line="true"]': {
+        marginTop: '20px',
+    },
+    '.cm-code-block-line[data-code-block-first-line="true"]::before': {
+        content: 'attr(data-language)',
+        position: 'absolute',
+        top: '-20px',
+        right: '0',
+        left: '0',
+        height: '20px',
+        backgroundColor: 'rgba(40, 42, 54, 0.8)',
+        color: '#8be9fd',
+        fontSize: '12px',
+        fontWeight: 'bold',
+        lineHeight: '20px',
+        padding: '0 8px',
+        borderTopLeftRadius: '6px',
+        borderTopRightRadius: '6px',
+        textAlign: 'right',
+        pointerEvents: 'none',
+        zIndex: '1',
     },
     // シンタックスハイライト用スタイル - 特異性を上げて.cm-contentを上書き
     '.cm-content .cm-syntax-keyword': {

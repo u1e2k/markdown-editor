@@ -38,7 +38,7 @@ class BoldStartWidget extends WidgetType {
   toDOM() {
     return document.createTextNode('');
   }
-  
+
   ignoreEvent() { return false; }
 }
 
@@ -47,7 +47,7 @@ class BoldEndWidget extends WidgetType {
   toDOM() {
     return document.createTextNode('');
   }
-  
+
   ignoreEvent() { return false; }
 }
 
@@ -56,7 +56,7 @@ class ItalicStartWidget extends WidgetType {
   toDOM() {
     return document.createTextNode('');
   }
-  
+
   ignoreEvent() { return false; }
 }
 
@@ -65,7 +65,7 @@ class ItalicEndWidget extends WidgetType {
   toDOM() {
     return document.createTextNode('');
   }
-  
+
   ignoreEvent() { return false; }
 }
 
@@ -115,15 +115,15 @@ class ListItemWidget extends WidgetType {
     span.style.color = '#dcddde';
     span.style.lineHeight = 'inherit';
     span.style.display = 'inline';
-    
+
     const bullet = document.createElement('span');
     bullet.textContent = this.marker === '-' || this.marker === '*' || this.marker === '+' ? '• ' : `${this.marker} `;
     bullet.style.color = '#7f8c8d';
     bullet.style.marginRight = '0.5em';
-    
+
     const content = document.createElement('span');
     content.textContent = this.text;
-    
+
     span.appendChild(bullet);
     span.appendChild(content);
     return span;
@@ -175,7 +175,7 @@ class TaskListWidget extends WidgetType {
     span.style.color = '#dcddde';
     span.style.lineHeight = 'inherit';
     span.style.display = 'inline';
-    
+
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = this.checked;
@@ -184,14 +184,14 @@ class TaskListWidget extends WidgetType {
     checkbox.style.marginBottom = '0';
     checkbox.style.cursor = 'pointer';
     checkbox.style.verticalAlign = 'middle';
-    
+
     const content = document.createElement('span');
     content.textContent = this.text;
     if (this.checked) {
       content.style.textDecoration = 'line-through';
       content.style.opacity = '0.5';
     }
-    
+
     span.appendChild(checkbox);
     span.appendChild(content);
     return span;
@@ -226,7 +226,7 @@ class ImageWidget extends WidgetType {
     container.style.margin = '0';
     container.style.textAlign = 'center';
     container.style.lineHeight = '0';
-    
+
     const img = document.createElement('img');
     img.src = this.url;
     img.alt = this.alt;
@@ -234,7 +234,7 @@ class ImageWidget extends WidgetType {
     img.style.borderRadius = '6px';
     img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
     img.style.verticalAlign = 'middle';
-    
+
     container.appendChild(img);
     return container;
   }
@@ -286,17 +286,17 @@ const livePreviewPlugin = ViewPlugin.fromClass(
     buildDecorations(view: EditorView): DecorationSet {
       const decorations: any[] = [];
       const cursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
-      
+
       // コードブロックの検出
       const codeBlockLines = new Set<number>();
       let inCodeBlock = false;
       let codeBlockStartLine = 0;
       const codeBlockInfo: { start: number; end: number; lines: number[] }[] = [];
-      
+
       for (let i = 1; i <= view.state.doc.lines; i++) {
         const line = view.state.doc.line(i);
         const lineText = line.text;
-        
+
         if (lineText.trim().startsWith('```')) {
           if (!inCodeBlock) {
             // コードブロック開始
@@ -323,21 +323,21 @@ const livePreviewPlugin = ViewPlugin.fromClass(
         if (lineNum === cursorLine) {
           continue;
         }
-        
+
         const line = view.state.doc.line(lineNum);
         const lineText = line.text;
-        
+
         // コードブロック内の処理
         if (codeBlockLines.has(lineNum)) {
           // カーソルがコードブロック内にある場合は、そのブロック全体をスキップ
           const blockContainsCursor = codeBlockInfo.some(
             block => cursorLine >= block.start && cursorLine <= block.end && lineNum >= block.start && lineNum <= block.end
           );
-          
+
           if (blockContainsCursor) {
             continue;
           }
-          
+
           const block = codeBlockInfo.find(b => lineNum >= b.start && lineNum <= b.end);
           if (block) {
             // コードブロック全体を置換ではなく、マークで装飾する
@@ -356,7 +356,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
         if (headingMatch) {
           const level = headingMatch[1].length;
           const text = headingMatch[2];
-          
+
           decorations.push(
             Decoration.replace({
               widget: new HeadingWidget(text, level),
@@ -380,7 +380,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
         if (quoteMatch) {
           const level = quoteMatch[1].length;
           const text = quoteMatch[2];
-          
+
           decorations.push(
             Decoration.replace({
               widget: new BlockquoteWidget(text, level - 1),
@@ -395,7 +395,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
           const indent = Math.floor(taskMatch[1].length / 2);
           const checked = taskMatch[3].toLowerCase() === 'x';
           const text = taskMatch[4];
-          
+
           decorations.push(
             Decoration.replace({
               widget: new TaskListWidget(text, checked, indent),
@@ -410,7 +410,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
           const indent = Math.floor(listMatch[1].length / 2);
           const marker = listMatch[2];
           const text = listMatch[3];
-          
+
           decorations.push(
             Decoration.replace({
               widget: new ListItemWidget(text, indent, marker),
@@ -424,13 +424,13 @@ const livePreviewPlugin = ViewPlugin.fromClass(
           // 空行を段落区切りとして扱う（前後の行がテキストの場合のみ）
           const prevLine = lineNum > 1 ? view.state.doc.line(lineNum - 1) : null;
           const nextLine = lineNum < view.state.doc.lines ? view.state.doc.line(lineNum + 1) : null;
-          
+
           // 前の行と次の行が両方ともテキスト（見出しやリストではない）の場合のみスペーシングを追加
-          const prevIsText = prevLine && prevLine.text.trim().length > 0 && 
-                            !prevLine.text.match(/^(#{1,6}\s|>|[-*+]\s|\d+\.\s|```|---)/);
-          const nextIsText = nextLine && nextLine.text.trim().length > 0 && 
-                            !nextLine.text.match(/^(#{1,6}\s|>|[-*+]\s|\d+\.\s|```|---)/);
-          
+          const prevIsText = prevLine && prevLine.text.trim().length > 0 &&
+            !prevLine.text.match(/^(#{1,6}\s|>|[-*+]\s|\d+\.\s|```|---)/);
+          const nextIsText = nextLine && nextLine.text.trim().length > 0 &&
+            !nextLine.text.match(/^(#{1,6}\s|>|[-*+]\s|\d+\.\s|```|---)/);
+
           if (prevIsText && nextIsText) {
             decorations.push(
               Decoration.replace({
@@ -463,7 +463,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
           const start = line.from + match.index;
           const end = start + match[0].length;
           // 画像とかぶらないようにチェック
-          const overlaps = lineDecorations.some(d => 
+          const overlaps = lineDecorations.some(d =>
             (start >= d.from && start < d.to) || (end > d.from && end <= d.to)
           );
           if (!overlaps) {
@@ -482,7 +482,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
           const start = line.from + match.index;
           const end = start + match[0].length;
           // 既存の装飾とかぶらないようにチェック
-          const overlaps = lineDecorations.some(d => 
+          const overlaps = lineDecorations.some(d =>
             (start >= d.from && start < d.to) || (end > d.from && end <= d.to)
           );
           if (!overlaps) {
@@ -499,7 +499,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
         while ((match = strikethroughPattern.exec(lineText)) !== null) {
           const start = line.from + match.index;
           const end = start + match[0].length;
-          const overlaps = lineDecorations.some(d => 
+          const overlaps = lineDecorations.some(d =>
             (start >= d.from && start < d.to) || (end > d.from && end <= d.to)
           );
           if (!overlaps) {
@@ -518,7 +518,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
           const start = line.from + match.index;
           const end = start + match[0].length;
           // 既存の装飾とかぶらないようにチェック
-          const overlaps = lineDecorations.some(d => 
+          const overlaps = lineDecorations.some(d =>
             (start >= d.from && start < d.to) || (end > d.from && end <= d.to)
           );
           if (!overlaps) {
@@ -536,7 +536,7 @@ const livePreviewPlugin = ViewPlugin.fromClass(
           const start = line.from + match.index;
           const end = start + match[0].length;
           // 太字とかぶらないようにチェック
-          const overlaps = lineDecorations.some(d => 
+          const overlaps = lineDecorations.some(d =>
             (start >= d.from && start < d.to) || (end > d.from && end <= d.to)
           );
           if (!overlaps) {
@@ -582,7 +582,7 @@ const customHighlight = HighlightStyle.define([
   { tag: tags.strong, fontWeight: 'bold', color: '#dcddde' },
   { tag: tags.emphasis, fontStyle: 'italic', color: '#b5bcc7' },
   { tag: tags.link, color: '#4fc3f7', textDecoration: 'underline' },
-  { tag: tags.monospace, fontFamily: '"Fira Code", "JetBrains Mono", Consolas, monospace', backgroundColor: 'rgba(0,0,0,0.3)', padding: '2px 4px', borderRadius: '3px', color: '#abb2bf', fontSize: '0.92em' },
+  { tag: tags.monospace, fontFamily: '"Fira Code", "JetBrains Mono", Consolas, monospace', padding: '2px 4px', borderRadius: '3px', color: '#abb2bf', fontSize: '0.92em' },
 ]);
 
 export function CodeMirrorEditor({ value, onChange }: CodeMirrorEditorProps) {
@@ -613,17 +613,17 @@ export function CodeMirrorEditor({ value, onChange }: CodeMirrorEditorProps) {
         }
       }),
       EditorView.theme({
-        '&': { 
-          height: '100%', 
+        '&': {
+          height: '100%',
           fontSize: '15px',
           backgroundColor: '#1e1e1e',
         },
-        '.cm-scroller': { 
-          overflow: 'auto', 
+        '.cm-scroller': {
+          overflow: 'auto',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif',
           lineHeight: '1.6',
         },
-        '.cm-content': { 
+        '.cm-content': {
           padding: '20px 32px 40px 32px',
           lineHeight: '1.6',
           color: '#dcddde',
@@ -651,6 +651,37 @@ export function CodeMirrorEditor({ value, onChange }: CodeMirrorEditorProps) {
           fontFamily: '"Fira Code", "JetBrains Mono", Consolas, Monaco, monospace',
           fontSize: '13px',
           color: '#abb2bf',
+          position: 'relative', // ::beforeの配置基準
+        },
+        '.cm-code-block-line[data-code-block-first-line="true"]': {
+          marginTop: '24px', // マージンでスペースを確保する方が安全かも？いや、paddingだと背景色が伸びてしまう。
+          // padding-topだと背景色（rgba(0,0,0,0.3)）がヘッダー裏にも適用される。
+          // ヘッダー背景は別途設定するので、paddingでなくmarginで隙間を空け、そこにabsoluteで配置する？
+          // いや、ここは一体化させたいのでpaddingで広げて、背景色は共通の部分とするのが良いか。
+          // ただし .cm-code-block-line の背景色は半透明黒(0.3)なので、ヘッダーの不透明色(0.8)と重なると濃くなる。
+
+          // 戦略変更: ヘッダーは .cm-code-block-line の「上に突き出す」形で表示する。
+          // margin-top を確保し、top: -24px で配置。
+          marginTop: '20px',
+        },
+        '.cm-code-block-line[data-code-block-first-line="true"]::before': {
+          content: 'attr(data-language)',
+          position: 'absolute',
+          top: '-20px',
+          right: '0',
+          left: '0',
+          height: '20px',
+          backgroundColor: 'rgba(40, 42, 54, 0.8)', // ヘッダー背景色
+          color: '#8be9fd',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          lineHeight: '20px',
+          padding: '0 8px',
+          borderTopLeftRadius: '6px',
+          borderTopRightRadius: '6px',
+          textAlign: 'right',
+          pointerEvents: 'none',
+          zIndex: 1, // 他の要素より上に
         },
       }),
     ];

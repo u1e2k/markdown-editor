@@ -1,4 +1,5 @@
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
+import { syntaxTree } from '@codemirror/language';
 import {
     HideWidget,
     WikiLinkWidget,
@@ -10,6 +11,7 @@ import {
     BlockquoteWidget,
     TaskListWidget,
     HorizontalRuleWidget,
+    CodeBlockHeaderWidget,
 } from './widgets';
 
 // シンタックスハイライト用の範囲を取得
@@ -315,95 +317,106 @@ function buildDecorations(view: EditorView): DecorationSet {
     const replaceDecorations: any[] = []; // Decoration.replace
     const cursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
 
-    // コードブロックの検出と収集
-    const codeBlockLines = new Set<number>();
-    let inCodeBlock = false;
-    let codeBlockStartLine = 0;
-    let codeBlockLanguage = '';
-    const codeBlockInfo: { start: number; end: number; language: string }[] = [];
+    // コードブロックの範囲を記録するセット（行番号ベースで重複処理を避けるため）
+    const codeBlockRanges = new Set<number>();
 
-    for (let i = 1; i <= view.state.doc.lines; i++) {
-        const line = view.state.doc.line(i);
-        const lineText = line.text;
+    // 1. Syntax Treeを使ってコードブロック(FencedCode)を正確に検出
+    // (syntaxTreeは冒頭でimport済み)
 
-        if (lineText.trim().startsWith('```')) {
-            if (!inCodeBlock) {
-                inCodeBlock = true;
-                codeBlockStartLine = i;
-                codeBlockLines.add(i);
-                // 言語指定を取得（```javascript など）
-                codeBlockLanguage = lineText.trim().substring(3).trim();
-            } else {
-                codeBlockLines.add(i);
-                codeBlockInfo.push({
-                    start: codeBlockStartLine,
-                    end: i,
-                    language: codeBlockLanguage
-                });
-                inCodeBlock = false;
-                codeBlockLanguage = '';
+    syntaxTree(view.state).iterate({
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        enter: (node: any) => {
+            if (node.name === 'FencedCode') {
+                const fromLine = view.state.doc.lineAt(node.from);
+                const toLine = view.state.doc.lineAt(node.to);
+
+                // 言語名の取得（CodeInfoノードから）
+                let language = '';
+                let infoNode = node.node.firstChild;
+                while (infoNode) {
+                    if (infoNode.name === 'CodeInfo') {
+                        language = view.state.sliceDoc(infoNode.from, infoNode.to);
+                        break;
+                    }
+                    infoNode = infoNode.nextSibling;
+                }
+
+                // コードブロック内の行を処理
+                for (let i = fromLine.number; i <= toLine.number; i++) {
+                    codeBlockRanges.add(i);
+                    const line = view.state.doc.line(i);
+                    const lineText = line.text;
+                    const isCursorLine = i === cursorLine;
+
+                    // 開始行（```lang）
+                    if (i === fromLine.number) {
+                        if (isCursorLine) continue; // 編集時はそのまま
+
+                        replaceDecorations.push(
+                            Decoration.replace({
+                                widget: new HideWidget(),
+                            }).range(line.from, line.to)
+                        );
+                    }
+                    // 終了行（```）
+                    else if (i === toLine.number) {
+                        if (isCursorLine) continue; // 編集時はそのまま
+
+                        replaceDecorations.push(
+                            Decoration.replace({
+                                widget: new HideWidget(),
+                            }).range(line.from, line.to)
+                        );
+                    }
+                    // 本文行
+                    else {
+                        const lineAttrs: any = {
+                            class: 'cm-code-block-line'
+                        };
+
+                        // 本文1行目の場合、属性を追加してCSSでヘッダーを表示させる
+                        if (i === fromLine.number + 1 && language) {
+                            lineAttrs['data-code-block-first-line'] = 'true';
+                            lineAttrs['data-language'] = language;
+                        }
+
+                        // 背景色（カーソル行でも適用）
+                        lineDecorations.push(
+                            Decoration.line({
+                                attributes: lineAttrs
+                            }).range(line.from)
+                        );
+
+                        // シンタックスハイライト
+                        const highlights = getHighlightRanges(lineText, language);
+                        for (const hl of highlights) {
+                            markDecorations.push(
+                                Decoration.mark({
+                                    class: hl.class,
+                                }).range(line.from + hl.from, line.from + hl.to)
+                            );
+                        }
+                    }
+                }
+                return false; // 子ノードの走査は不要
             }
-        } else if (inCodeBlock) {
-            codeBlockLines.add(i);
         }
-    }
+    });
 
-    // 未閉じのコードブロックを処理（閉じる```がない場合）
-    if (inCodeBlock) {
-        codeBlockInfo.push({
-            start: codeBlockStartLine,
-            end: view.state.doc.lines,
-            language: codeBlockLanguage
-        });
-    }
-
-    // 各行を処理
+    // 2. その他のMarkdown要素を行ごとに処理（コードブロック以外）
     for (let lineNum = 1; lineNum <= view.state.doc.lines; lineNum++) {
-        // カーソルがある行はスキップ（編集モード）
-        if (lineNum === cursorLine) {
-            continue;
-        }
+        // コードブロック内の行はスキップ
+        if (codeBlockRanges.has(lineNum)) continue;
 
+        const isCursorLine = lineNum === cursorLine;
         const line = view.state.doc.line(lineNum);
         const lineText = line.text;
 
-        // コードブロック内の処理
-        if (codeBlockLines.has(lineNum)) {
-            const block = codeBlockInfo.find(b => lineNum >= b.start && lineNum <= b.end);
-            const blockContainsCursor = block && cursorLine >= block.start && cursorLine <= block.end;
-
-            if (blockContainsCursor) {
-                continue;
-            }
-
-            // ```で始まる行(コードブロックの開始・終了)は非表示に
-            if (lineText.trim().startsWith('```')) {
-                replaceDecorations.push(
-                    Decoration.replace({
-                        widget: new HideWidget(),
-                    }).range(line.from, line.to)
-                );
-            } else {
-                // コードブロック行全体に背景色クラスを適用
-                markDecorations.push(
-                    Decoration.mark({
-                        class: 'cm-code-block-line',
-                    }).range(line.from, line.to)
-                );
-
-                // シンタックスハイライトを追加（マークデコレーション）
-                if (block) {
-                    const highlights = getHighlightRanges(lineText, block.language);
-                    console.log(`[Syntax] Line ${lineNum}, Lang: ${block.language}, Text: "${lineText}", Highlights:`, highlights);
-                    for (const hl of highlights) {
-                        markDecorations.push(
-                            Decoration.mark({
-                                class: hl.class,
-                            }).range(line.from + hl.from, line.from + hl.to)
-                        );
-                    }
-                }
-            }
+        // カーソルがある行のブロックレベル置換はスキップ
+        if (isCursorLine) {
+            // インライン要素の処理だけは行うか？ -> いや、編集モードではプレーンに見せるのが基本
+            // ただし、もしインライン装飾を編集時も見せたいならここで処理するが、
+            // 既存ロジックに合わせてスキップする。
             continue;
         }
 

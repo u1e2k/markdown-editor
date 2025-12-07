@@ -198,3 +198,37 @@ export class HorizontalRuleWidget extends WidgetType {
         return hr;
     }
 }
+
+// コードブロックヘッダーのウィジェット（言語名を表示）
+export class CodeBlockHeaderWidget extends WidgetType {
+    constructor(readonly language: string) {
+        super();
+    }
+
+    toDOM() {
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.justifyContent = 'flex-end';
+        container.style.padding = '4px 8px 10px 8px'; // 下部のpaddingを増やして調整
+        container.style.backgroundColor = 'rgba(40, 42, 54, 0.8)'; // theme.tsの色と統一
+        container.style.borderTopLeftRadius = '6px';
+        container.style.borderTopRightRadius = '6px';
+        container.style.borderBottomLeftRadius = '0';
+        container.style.borderBottomRightRadius = '0';
+        container.style.marginBottom = '-6px'; // 下の行に食い込ませる
+        container.style.position = 'relative';
+        container.style.zIndex = '1';
+
+        const label = document.createElement('span');
+        label.textContent = this.language;
+        label.style.fontSize = '11px';
+        label.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        label.style.color = '#8be9fd';
+        label.style.textTransform = 'uppercase';
+        label.style.letterSpacing = '0.5px';
+        label.style.fontWeight = '500';
+
+        container.appendChild(label);
+        return container;
+    }
+}
