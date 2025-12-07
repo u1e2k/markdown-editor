@@ -1,3 +1,37 @@
+/* CSS変数: デザインシステムのカラーパレット */
+:root {
+  /* 背景色 */
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2d2d30;
+  --bg-input: #3e3e42;
+  --bg-hover: #37373d;
+
+  /* ボーダー色 */
+  --border-primary: #3e3e42;
+  --border-secondary: #555;
+
+  /* テキスト色 */
+  --text-primary: #dcddde;
+  --text-secondary: #cccccc;
+  --text-muted: #858585;
+  --text-placeholder: #6e7681;
+
+  /* アクセントカラー */
+  --accent-primary: #0e639c;
+  --accent-primary-dark: #004b72;
+  --accent-primary-light: #1177bb;
+  --accent-teal: #4ec9b0;
+  --accent-cyan: #4fc3f7;
+
+  /* ステータスカラー */
+  --status-success: #5cb85c;
+  --status-warning: #d4af37;
+  --status-danger: #d9534f;
+  --status-danger-dark: #5c2c2c;
+  --status-danger-border: #8b3a3a;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -10,8 +44,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #1e1e1e;
-  color: #dcddde;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 #root {
@@ -46,6 +80,6 @@ code {
 
 /* テキスト選択の色 */
 ::selection {
-  background-color: #004b72;
-  color: #dcddde;
+  background-color: var(--accent-primary-dark);
+  color: var(--text-primary);
 }

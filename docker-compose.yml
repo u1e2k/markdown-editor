@@ -1,45 +1,45 @@
 services:
-  # MinIO - S3互換オブジェクトストレージ
-  minio:
-    image: minio/minio:latest
-    container_name: jade-minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio-data:/data
-    networks:
-      - jade-network
+  # MinIO - S3互換オブジェクトストレージ (現在未使用)
+  # minio:
+  #   image: minio/minio:latest
+  #   container_name: jade-minio
+  #   ports:
+  #     - "9000:9000"
+  #     - "9001:9001"
+  #   environment:
+  #     MINIO_ROOT_USER: minioadmin
+  #     MINIO_ROOT_PASSWORD: minioadmin
+  #   command: server /data --console-address ":9001"
+  #   volumes:
+  #     - minio-data:/data
+  #   networks:
+  #     - jade-network
 
-  # DynamoDB Local - メタデータDB
-  dynamodb:
-    image: amazon/dynamodb-local:latest
-    container_name: jade-dynamodb
-    ports:
-      - "8000:8000"
-    command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
-    networks:
-      - jade-network
+  # DynamoDB Local - メタデータDB (現在未使用)
+  # dynamodb:
+  #   image: amazon/dynamodb-local:latest
+  #   container_name: jade-dynamodb
+  #   ports:
+  #     - "8000:8000"
+  #   command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
+  #   networks:
+  #     - jade-network
 
-  # Elasticsearch - 全文検索エンジン
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: jade-elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
-    networks:
-      - jade-network
+  # Elasticsearch - 全文検索エンジン (現在未使用)
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+  #   container_name: jade-elasticsearch
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #   ports:
+  #     - "9200:9200"
+  #     - "9300:9300"
+  #   volumes:
+  #     - elasticsearch-data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - jade-network
 
   # バックエンドAPI (Bun)
   api:
@@ -53,16 +53,16 @@ services:
       - NODE_ENV=development
       - PORT=8080
       - VAULT_PATH=/vault
-      - MINIO_ENDPOINT=minio
-      - MINIO_PORT=9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
-      - DYNAMODB_ENDPOINT=http://dynamodb:8000
-      - ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200
-    depends_on:
-      - minio
-      - dynamodb
-      - elasticsearch
+      # - MINIO_ENDPOINT=minio
+      # - MINIO_PORT=9000
+      # - MINIO_ACCESS_KEY=minioadmin
+      # - MINIO_SECRET_KEY=minioadmin
+      # - DYNAMODB_ENDPOINT=http://dynamodb:8000
+      # - ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200
+      # depends_on:
+      #   - minio
+      # - dynamodb
+      # - elasticsearch
     volumes:
       - ./server:/app
       - ./vault:/vault
@@ -89,10 +89,9 @@ services:
     networks:
       - jade-network
     restart: unless-stopped
-
-volumes:
-  minio-data:
-  elasticsearch-data:
+  # volumes:
+  # minio-data:
+  # elasticsearch-data:
 
 networks:
   jade-network:

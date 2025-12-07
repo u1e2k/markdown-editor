@@ -7,7 +7,7 @@
 
 .note-list-header {
   padding: 12px 12px;
-  border-bottom: 1px solid #3e3e42;
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   justify-content: flex-end;
   flex-shrink: 0;
@@ -19,9 +19,9 @@
 }
 
 .import-button {
-  background-color: #004b72;
+  background-color: var(--accent-primary-dark);
   color: #ffffff;
-  border: 1px solid #0e639c;
+  border: 1px solid var(--accent-primary);
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -31,7 +31,7 @@
 }
 
 .import-button:hover {
-  background-color: #0e639c;
+  background-color: var(--accent-primary);
 }
 
 .import-button:active {
@@ -41,7 +41,7 @@
 .empty-list {
   padding: 20px 12px;
   text-align: center;
-  color: #858585;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -55,19 +55,19 @@
 }
 
 .note-item:hover {
-  background-color: #2d2d30;
+  background-color: var(--bg-tertiary);
 }
 
 .note-item.active {
-  background-color: #004b72;
-  border-left: 3px solid #4fc3f7;
+  background-color: var(--accent-primary-dark);
+  border-left: 3px solid var(--accent-cyan);
   padding-left: 9px;
 }
 
 .note-title {
   font-size: 13px;
   font-weight: 500;
-  color: #cccccc;
+  color: var(--text-secondary);
   margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -77,6 +77,6 @@
 
 .note-date {
   font-size: 11px;
-  color: #858585;
+  color: var(--text-muted);
   line-height: 1.2;
 }

@@ -16,14 +16,14 @@ export function EditorPage() {
   useEffect(() => {
     const loadNotes = async () => {
       await fetchNotes();
-      
+
       // 最後に開いていたノートを復元
       const lastNoteId = localStorage.getItem('lastOpenedNoteId');
       if (lastNoteId) {
         await fetchNote(lastNoteId);
       }
     };
-    
+
     loadNotes();
   }, [fetchNotes, fetchNote]);
 
@@ -44,7 +44,7 @@ export function EditorPage() {
       const now = new Date();
       const defaultTitle = `無題のノート ${now.toLocaleString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
       const today = now.toISOString().split('T')[0]; // YYYY-MM-DD形式
-      
+
       // frontmatterを含むコンテンツを作成
       const initialContent = `---
 created: ${today}
@@ -52,11 +52,11 @@ updated: ${today}
 ---
 
 `;
-      
+
       console.log('Creating note with content:', initialContent);
       const newNote = await createNote(defaultTitle, initialContent);
       console.log('Created note:', newNote);
-      
+
       // 作成したノートを開く（contentを取得するため）
       // fetchNoteの完了を待ってから次に進む
       if (newNote && newNote.id) {
@@ -88,8 +88,8 @@ updated: ${today}
             <button onClick={handleCreateNote} className="create-button">
               + 新規作成
             </button>
-            <button 
-              onClick={() => setShowGraph(!showGraph)} 
+            <button
+              onClick={() => setShowGraph(!showGraph)}
               className={`graph-toggle-button ${showGraph ? 'active' : ''}`}
               title={showGraph ? 'グラフを非表示' : 'グラフを表示'}
             >
@@ -103,13 +103,13 @@ updated: ${today}
           onSelectNote={handleSelectNote}
         />
       </div>
-      <button 
+      <button
         className="sidebar-toggle"
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
       >
         {isSidebarOpen ? '◀' : '▶'}
       </button>
-      <div className={`main-content ${showGraph ? 'split' : 'full'}`}>
+      <div className={`editor-main ${showGraph ? 'split' : 'full'}`}>
         <div className="editor-container">
           {currentNote ? (
             <Editor note={currentNote} />

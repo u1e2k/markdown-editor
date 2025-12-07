@@ -1,6 +1,6 @@
 .property-editor {
-  background-color: #2d2d30;
-  border-bottom: 1px solid #3e3e42;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-primary);
   font-size: 13px;
 }
 
@@ -14,17 +14,17 @@
 }
 
 .property-header:hover {
-  background-color: #37373d;
+  background-color: var(--bg-hover);
 }
 
 .property-toggle {
   margin-right: 8px;
-  color: #cccccc;
+  color: var(--text-secondary);
   font-size: 10px;
 }
 
 .property-title {
-  color: #cccccc;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -41,7 +41,7 @@
 .property-label {
   width: 80px;
   padding-top: 6px;
-  color: #858585;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -67,7 +67,7 @@
   display: inline-flex;
   align-items: center;
   padding: 4px 8px;
-  background-color: #0e639c;
+  background-color: var(--accent-primary);
   color: white;
   border-radius: 12px;
   font-size: 12px;
@@ -94,33 +94,33 @@
   flex: 1;
   min-width: 120px;
   padding: 4px 8px;
-  background-color: #3e3e42;
-  border: 1px solid #555;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-secondary);
   border-radius: 4px;
-  color: #cccccc;
+  color: var(--text-secondary);
   font-size: 12px;
   outline: none;
 }
 
 .tag-input:focus {
-  border-color: #0e639c;
+  border-color: var(--accent-primary);
 }
 
 .property-input,
 .property-select {
   width: 100%;
   padding: 6px 8px;
-  background-color: #3e3e42;
-  border: 1px solid #555;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-secondary);
   border-radius: 4px;
-  color: #cccccc;
+  color: var(--text-secondary);
   font-size: 12px;
   outline: none;
 }
 
 .property-input:focus,
 .property-select:focus {
-  border-color: #0e639c;
+  border-color: var(--accent-primary);
 }
 
 .property-select {
@@ -130,7 +130,7 @@
 .property-delete {
   background: transparent;
   border: none;
-  color: #858585;
+  color: var(--text-muted);
   font-size: 16px;
   cursor: pointer;
   padding: 0 4px;
@@ -144,27 +144,27 @@
 }
 
 .property-add-row {
-  background: #252526;
+  background: var(--bg-secondary);
   padding: 12px;
   border-radius: 4px;
   margin-top: 8px;
-  border: 1px solid #3e3e42;
+  border: 1px solid var(--border-primary);
 }
 
 .property-key-input {
   width: 100px;
   padding: 6px 8px;
-  background-color: #3e3e42;
-  border: 1px solid #555;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-secondary);
   border-radius: 4px;
-  color: #cccccc;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 500;
   outline: none;
 }
 
 .property-key-input:focus {
-  border-color: #0e639c;
+  border-color: var(--accent-primary);
 }
 
 .property-add-confirm,
@@ -178,17 +178,17 @@
 }
 
 .property-add-confirm {
-  background: #0e639c;
+  background: var(--accent-primary);
   color: white;
 }
 
 .property-add-confirm:hover {
-  background: #1177bb;
+  background: var(--accent-primary-light);
 }
 
 .property-add-cancel {
   background: transparent;
-  color: #858585;
+  color: var(--text-muted);
   font-size: 16px;
   padding: 0 8px;
 }
@@ -202,16 +202,16 @@
   padding: 8px;
   margin-top: 8px;
   background: transparent;
-  border: 1px dashed #555;
+  border: 1px dashed var(--border-secondary);
   border-radius: 4px;
-  color: #858585;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 12px;
   transition: all 0.2s;
 }
 
 .add-property-button:hover {
-  border-color: #0e639c;
-  color: #0e639c;
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
   background: rgba(14, 99, 156, 0.05);
 }

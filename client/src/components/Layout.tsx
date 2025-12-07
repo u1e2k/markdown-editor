@@ -17,21 +17,21 @@ export function Layout({ children }: LayoutProps) {
           <span className="subtitle">高速Markdownエディタ</span>
         </div>
         <div className="navbar-links">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className={location.pathname === '/' ? 'active' : ''}
           >
             エディタ
           </Link>
-          <Link 
-            to="/graph" 
+          <Link
+            to="/graph"
             className={location.pathname === '/graph' ? 'active' : ''}
           >
             グラフ
           </Link>
         </div>
       </nav>
-      <main className="main-content">
+      <main className="layout-main">
         {children}
       </main>
     </div>

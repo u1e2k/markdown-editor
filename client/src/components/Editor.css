@@ -3,12 +3,12 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #1e1e1e;
+  background-color: var(--bg-primary);
 }
 
 .editor-header {
   padding: 24px 32px 12px 32px;
-  border-bottom: 1px solid #3e3e42;
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -20,7 +20,7 @@
   flex: 1;
   background-color: transparent;
   border: none;
-  color: #dcddde;
+  color: var(--text-primary);
   font-size: 32px;
   font-weight: 600;
   outline: none;
@@ -29,7 +29,7 @@
 }
 
 .title-input::placeholder {
-  color: #6e7681;
+  color: var(--text-placeholder);
 }
 
 .editor-actions {
@@ -41,21 +41,21 @@
 
 .save-status {
   font-size: 11px;
-  color: #858585;
+  color: var(--text-muted);
   min-width: 60px;
   text-align: right;
 }
 
 .save-status.saving {
-  color: #d4af37;
+  color: var(--status-warning);
 }
 
 .save-status.saved {
-  color: #5cb85c;
+  color: var(--status-success);
 }
 
 .save-status.unsaved {
-  color: #d9534f;
+  color: var(--status-danger);
 }
 
 .save-button,
@@ -70,23 +70,23 @@
 }
 
 .save-button {
-  background-color: #004b72;
+  background-color: var(--accent-primary-dark);
   color: #ffffff;
-  border: 1px solid #0e639c;
+  border: 1px solid var(--accent-primary);
 }
 
 .save-button:hover {
-  background-color: #0e639c;
+  background-color: var(--accent-primary);
 }
 
 .delete-button {
-  background-color: #5c2c2c;
+  background-color: var(--status-danger-dark);
   color: #ffffff;
-  border: 1px solid #8b3a3a;
+  border: 1px solid var(--status-danger-border);
 }
 
 .delete-button:hover {
-  background-color: #8b3a3a;
+  background-color: var(--status-danger-border);
 }
 
 .editor-body {
